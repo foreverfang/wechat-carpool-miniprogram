@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec instructions design --change \"wechat-carpooling-miniapp\" --json 2>&1)",
+      "Bash(openspec status --change \"wechat-carpooling-miniapp\" 2>&1)",
+      "Bash(openspec status --change \"wechat-carpooling-miniapp\" --json 2>&1)",
+      "Bash(openspec instructions specs --change \"wechat-carpooling-miniapp\" --json 2>&1)",
+      "Bash(openspec instructions tasks --change \"wechat-carpooling-miniapp\" --json 2>&1)",
+      "Bash(openspec instructions apply --change \"wechat-carpooling-miniapp\" --json 2>&1)",
+      "Bash(openspec new change \"wechat-carpool-miniprogram\")",
+      "Bash(openspec status --change \"wechat-carpool-miniprogram\")",
+      "Bash(openspec instructions proposal --change \"wechat-carpool-miniprogram\")",
+      "Bash(cd wechat-carpool-miniprogram && pnpm install)",
+      "Bash(npm install -g pnpm)",
+      "Bash(pnpm --version)",
+      "Bash(cd wechat-carpool-miniprogram && pnpm run dev:mp-weixin)",
+      "Bash(pnpm add -D sass)",
+      "Bash(cd wechat-carpool-miniprogram/src/static/images && python3 << 'EOF'\nfrom PIL import Image\n\n# 创建 81x81 的图标\nsize = \\(81, 81\\)\n\n# 普通状态 - 灰色 #999999\ngray = \\(153, 153, 153\\)\n# 选中状态 - 绿色 #07C160\ngreen = \\(7, 193, 96\\)\n\nicons = ['home', 'publish', 'chat', 'profile']\n\nfor icon in icons:\n    # 普通状态\n    img = Image.new\\('RGB', size, gray\\)\n    img.save\\(f'{icon}.png'\\)\n    \n    # 选中状态\n    img_active = Image.new\\('RGB', size, green\\)\n    img_active.save\\(f'{icon}-active.png'\\)\n\nprint\\('图标创建成功！'\\)\nEOF)",
+      "Bash(python3 << 'EOF'\nfrom PIL import Image\n\n# 创建 81x81 的图标\nsize = \\(81, 81\\)\n\n# 普通状态 - 灰色 #999999\ngray = \\(153, 153, 153\\)\n# 选中状态 - 绿色 #07C160\ngreen = \\(7, 193, 96\\)\n\nicons = ['home', 'publish', 'chat', 'profile']\n\nfor icon in icons:\n    # 普通状态\n    img = Image.new\\('RGB', size, gray\\)\n    img.save\\(f'{icon}.png'\\)\n    \n    # 选中状态\n    img_active = Image.new\\('RGB', size, green\\)\n    img_active.save\\(f'{icon}-active.png'\\)\n\nprint\\('图标创建成功！'\\)\nEOF)",
+      "Bash(git init)",
+      "Bash(git branch -m main && git remote add origin https://github.com/foreverfang/wechat-carpool-miniprogram.git)",
+      "Bash(git add -A && git status)"
+    ]
+  }
+}

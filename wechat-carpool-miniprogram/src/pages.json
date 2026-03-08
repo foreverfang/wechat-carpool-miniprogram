@@ -1,0 +1,85 @@
+{
+	"pages": [
+		{
+			"path": "pages/home/index",
+			"style": {
+				"navigationBarTitleText": "拼车",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/publish/index",
+			"style": {
+				"navigationBarTitleText": "发布拼车"
+			}
+		},
+		{
+			"path": "pages/chat/index",
+			"style": {
+				"navigationBarTitleText": "消息"
+			}
+		},
+		{
+			"path": "pages/chat/detail",
+			"style": {
+				"navigationBarTitleText": "聊天"
+			}
+		},
+		{
+			"path": "pages/profile/index",
+			"style": {
+				"navigationBarTitleText": "个人中心"
+			}
+		},
+		{
+			"path": "pages/profile/records",
+			"style": {
+				"navigationBarTitleText": "拼车记录"
+			}
+		},
+		{
+			"path": "pages/profile/statistics",
+			"style": {
+				"navigationBarTitleText": "统计数据"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "拼车小程序",
+		"navigationBarBackgroundColor": "#07C160",
+		"backgroundColor": "#F5F5F5"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#07C160",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/home/index",
+				"text": "首页",
+				"iconPath": "static/images/home.png",
+				"selectedIconPath": "static/images/home-active.png"
+			},
+			{
+				"pagePath": "pages/publish/index",
+				"text": "发布",
+				"iconPath": "static/images/publish.png",
+				"selectedIconPath": "static/images/publish-active.png"
+			},
+			{
+				"pagePath": "pages/chat/index",
+				"text": "消息",
+				"iconPath": "static/images/chat.png",
+				"selectedIconPath": "static/images/chat-active.png"
+			},
+			{
+				"pagePath": "pages/profile/index",
+				"text": "我的",
+				"iconPath": "static/images/profile.png",
+				"selectedIconPath": "static/images/profile-active.png"
+			}
+		]
+	}
+}

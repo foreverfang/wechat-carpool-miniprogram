@@ -1,0 +1,316 @@
+<template>
+  <view class="profile-container">
+    <!-- 用户信息卡片 -->
+    <view class="user-card">
+      <image :src="userInfo.avatar" class="avatar" />
+      <view class="user-info">
+        <text class="username">{{ userInfo.username }}</text>
+        <view class="rating">
+          <text class="star">⭐</text>
+          <text class="score">{{ userInfo.rating }}</text>
+          <text class="verified" v-if="userInfo.verified">✓ 已认证</text>
+        </view>
+      </view>
+      <text class="edit-icon" @click="editProfile">›</text>
+    </view>
+
+    <!-- 统计数据 -->
+    <view class="stats-card">
+      <view class="stat-item" @click="viewRecords('published')">
+        <text class="stat-value">{{ stats.published }}</text>
+        <text class="stat-label">发布次数</text>
+      </view>
+      <view class="stat-item" @click="viewRecords('joined')">
+        <text class="stat-value">{{ stats.joined }}</text>
+        <text class="stat-label">参与次数</text>
+      </view>
+      <view class="stat-item" @click="viewRecords('completed')">
+        <text class="stat-value">{{ stats.completed }}</text>
+        <text class="stat-label">完成次数</text>
+      </view>
+    </view>
+
+    <!-- 功能菜单 -->
+    <view class="menu-section">
+      <view class="menu-item" @click="navigateTo('/pages/profile/records')">
+        <view class="menu-left">
+          <text class="menu-icon">📋</text>
+          <text class="menu-text">拼车记录</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" @click="navigateTo('/pages/profile/statistics')">
+        <view class="menu-left">
+          <text class="menu-icon">📊</text>
+          <text class="menu-text">统计数据</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" @click="viewRatings">
+        <view class="menu-left">
+          <text class="menu-icon">⭐</text>
+          <text class="menu-text">我的评价</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-section">
+      <view class="menu-item" @click="handleAuth">
+        <view class="menu-left">
+          <text class="menu-icon">🔐</text>
+          <text class="menu-text">实名认证</text>
+        </view>
+        <view class="menu-right">
+          <text class="status" :class="userInfo.verified ? 'verified' : ''">
+            {{ userInfo.verified ? '已认证' : '未认证' }}
+          </text>
+          <text class="menu-arrow">›</text>
+        </view>
+      </view>
+
+      <view class="menu-item" @click="handleSettings">
+        <view class="menu-left">
+          <text class="menu-icon">⚙️</text>
+          <text class="menu-text">设置</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
+interface UserInfo {
+  avatar: string
+  username: string
+  rating: number
+  verified: boolean
+}
+
+interface Stats {
+  published: number
+  joined: number
+  completed: number
+}
+
+const userInfo = ref<UserInfo>({
+  avatar: '/static/logo.png',
+  username: '用户名',
+  rating: 4.8,
+  verified: false
+})
+
+const stats = ref<Stats>({
+  published: 12,
+  joined: 8,
+  completed: 18
+})
+
+const loadUserInfo = async () => {
+  try {
+    // TODO: 调用实际 API
+    // const res = await getUserInfo()
+    // userInfo.value = res.data
+  } catch (error) {
+    console.error('加载失败', error)
+  }
+}
+
+const loadStats = async () => {
+  try {
+    // TODO: 调用实际 API
+    // const res = await getUserStats()
+    // stats.value = res.data
+  } catch (error) {
+    console.error('加载失败', error)
+  }
+}
+
+const editProfile = () => {
+  // TODO: 跳转到编辑资料页
+  uni.showToast({ title: '编辑资料', icon: 'none' })
+}
+
+const viewRecords = (type: string) => {
+  uni.navigateTo({
+    url: `/pages/profile/records?type=${type}`
+  })
+}
+
+const navigateTo = (url: string) => {
+  uni.navigateTo({ url })
+}
+
+const viewRatings = () => {
+  // TODO: 跳转到评价页面
+  uni.showToast({ title: '我的评价', icon: 'none' })
+}
+
+const handleAuth = () => {
+  // TODO: 跳转到实名认证页面
+  uni.showToast({ title: '实名认证', icon: 'none' })
+}
+
+const handleSettings = () => {
+  // TODO: 跳转到设置页面
+  uni.showToast({ title: '设置', icon: 'none' })
+}
+
+onMounted(() => {
+  loadUserInfo()
+  loadStats()
+})
+</script>
+
+<style scoped lang="scss">
+.profile-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  padding: 40rpx 24rpx;
+  background: linear-gradient(135deg, #07c160 0%, #05a850 100%);
+  color: #fff;
+
+  .avatar {
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: 50%;
+    margin-right: 24rpx;
+    border: 4rpx solid rgba(255, 255, 255, 0.3);
+  }
+
+  .user-info {
+    flex: 1;
+
+    .username {
+      display: block;
+      font-size: 36rpx;
+      font-weight: bold;
+      margin-bottom: 12rpx;
+    }
+
+    .rating {
+      display: flex;
+      align-items: center;
+      font-size: 24rpx;
+
+      .star {
+        margin-right: 8rpx;
+      }
+
+      .score {
+        margin-right: 16rpx;
+      }
+
+      .verified {
+        padding: 4rpx 12rpx;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 20rpx;
+        font-size: 20rpx;
+      }
+    }
+  }
+
+  .edit-icon {
+    font-size: 48rpx;
+    opacity: 0.8;
+  }
+}
+
+.stats-card {
+  display: flex;
+  margin: 20rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx 0;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+
+  .stat-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 1rpx solid #eee;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    .stat-value {
+      font-size: 40rpx;
+      font-weight: bold;
+      color: #07c160;
+      margin-bottom: 12rpx;
+    }
+
+    .stat-label {
+      font-size: 24rpx;
+      color: #999;
+    }
+  }
+}
+
+.menu-section {
+  margin: 20rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 32rpx 24rpx;
+    border-bottom: 1rpx solid #eee;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .menu-left {
+      display: flex;
+      align-items: center;
+
+      .menu-icon {
+        font-size: 40rpx;
+        margin-right: 20rpx;
+      }
+
+      .menu-text {
+        font-size: 28rpx;
+        color: #333;
+      }
+    }
+
+    .menu-right {
+      display: flex;
+      align-items: center;
+
+      .status {
+        font-size: 24rpx;
+        color: #999;
+        margin-right: 12rpx;
+
+        &.verified {
+          color: #07c160;
+        }
+      }
+    }
+
+    .menu-arrow {
+      font-size: 40rpx;
+      color: #ccc;
+    }
+  }
+}
+</style>
