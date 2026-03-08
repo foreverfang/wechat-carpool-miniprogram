@@ -27,3 +27,4 @@ unpackage/
 
 # Claude
 .claude/memory/
+.claude/settings.local.json
