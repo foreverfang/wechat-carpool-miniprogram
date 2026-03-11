@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { Ride, RideType } from '@/types'
+import type { Ride, RideType, PublishRideParams } from '@/types'
 
 // 获取拼车列表
 export const getRideList = (params: {
@@ -15,11 +15,11 @@ export const getRideList = (params: {
 }
 
 // 发布拼车信息
-export const publishRide = (data: Partial<Ride>) => {
+export const publishRide = (params: PublishRideParams) => {
   return request<Ride>({
     url: '/rides',
     method: 'POST',
-    data
+    data: params
   })
 }
 

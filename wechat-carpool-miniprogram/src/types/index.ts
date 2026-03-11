@@ -82,3 +82,14 @@ export interface Statistics {
   joinedCount: number
   completedCount: number
 }
+
+// 发布拼车信息的参数
+export interface PublishRideParams {
+  type: RideType
+  departure: string
+  destination: string
+  departureTime: string
+  seats?: number
+  price?: number
+  note?: string
+}
