@@ -7,7 +7,7 @@
     </view>
 
     <!-- 表单容器 -->
-    <form class="publish-form">
+    <view class="publish-form">
       <!-- 拼车类型选择器 -->
       <view class="form-section">
         <view class="section-title">
@@ -16,11 +16,11 @@
         </view>
         <radio-group class="radio-group" @change="onTypeChange">
           <label class="radio-item">
-            <radio value="find-car" :checked="formData.type === 'find-car'" color="#07C160" />
+            <radio value="find-car" :checked="formData.type === 'find-car'" color="#1890FF" />
             <text>找车（我是乘客）</text>
           </label>
           <label class="radio-item">
-            <radio value="find-passenger" :checked="formData.type === 'find-passenger'" color="#07C160" />
+            <radio value="find-passenger" :checked="formData.type === 'find-passenger'" color="#1890FF" />
             <text>找乘客（我是司机）</text>
           </label>
         </radio-group>
@@ -32,13 +32,13 @@
           <text class="required">*</text>
           <text>出发地</text>
         </view>
-        <input
-          class="form-input"
-          v-model="formData.departure"
-          placeholder="请输入出发地，如：北京市朝阳区"
-          maxlength="50"
-          @blur="validateField('departure')"
-        />
+        <view class="location-picker" @click="chooseLocation('departure')">
+          <text class="location-icon">📍</text>
+          <text :class="formData.departure ? 'location-text' : 'location-placeholder'">
+            {{ formData.departure || '点击选择出发地' }}
+          </text>
+          <text class="location-arrow">›</text>
+        </view>
         <text v-if="errors.departure" class="error-text">{{ errors.departure }}</text>
       </view>
 
@@ -48,14 +48,37 @@
           <text class="required">*</text>
           <text>目的地</text>
         </view>
-        <input
-          class="form-input"
-          v-model="formData.destination"
-          placeholder="请输入目的地，如：北京市海淀区"
-          maxlength="50"
-          @blur="validateField('destination')"
-        />
+        <view class="location-picker" @click="chooseLocation('destination')">
+          <text class="location-icon">📍</text>
+          <text :class="formData.destination ? 'location-text' : 'location-placeholder'">
+            {{ formData.destination || '点击选择目的地' }}
+          </text>
+          <text class="location-arrow">›</text>
+        </view>
         <text v-if="errors.destination" class="error-text">{{ errors.destination }}</text>
+      </view>
+
+      <!-- 途径点（仅车找人） -->
+      <view class="form-section" v-if="formData.type === 'find-passenger'">
+        <view class="section-title">
+          <text>途径点（可选，最多3个）</text>
+        </view>
+        <view
+          v-for="(wp, index) in formData.waypoints"
+          :key="index"
+          class="waypoint-item"
+        >
+          <text class="location-icon">🔵</text>
+          <text class="location-text">{{ wp.name }}</text>
+          <text class="waypoint-delete" @click="removeWaypoint(index)">✕</text>
+        </view>
+        <view
+          class="add-waypoint-btn"
+          :class="{ disabled: (formData.waypoints?.length ?? 0) >= 3 }"
+          @click="addWaypoint"
+        >
+          <text>+ 添加途径点</text>
+        </view>
       </view>
 
       <!-- 出发时间 -->
@@ -64,18 +87,33 @@
           <text class="required">*</text>
           <text>出发时间</text>
         </view>
-        <picker
-          mode="datetime"
-          :value="formData.departureTime"
-          :start="minDateTime"
-          @change="onTimeChange"
-        >
-          <view class="picker-input">
-            <text :class="formData.departureTime ? 'picker-value' : 'picker-placeholder'">
-              {{ formData.departureTime || '请选择出发时间' }}
-            </text>
-          </view>
-        </picker>
+        <view class="datetime-row">
+          <picker
+            mode="date"
+            :value="selectedDate"
+            :start="minDate"
+            @change="onDateChange"
+            style="flex: 1"
+          >
+            <view class="picker-input">
+              <text :class="selectedDate ? 'picker-value' : 'picker-placeholder'">
+                {{ selectedDate || '选择日期' }}
+              </text>
+            </view>
+          </picker>
+          <picker
+            mode="time"
+            :value="selectedTime"
+            @change="onTimePickerChange"
+            style="flex: 1"
+          >
+            <view class="picker-input">
+              <text :class="selectedTime ? 'picker-value' : 'picker-placeholder'">
+                {{ selectedTime || '选择时间' }}
+              </text>
+            </view>
+          </picker>
+        </view>
         <text v-if="errors.departureTime" class="error-text">{{ errors.departureTime }}</text>
       </view>
 
@@ -125,7 +163,7 @@
         <view class="char-count">{{ formData.note.length }}/200</view>
         <text v-if="errors.note" class="error-text">{{ errors.note }}</text>
       </view>
-    </form>
+    </view>
 
     <!-- 发布按钮 -->
     <view class="submit-container">
@@ -150,7 +188,10 @@ import { publishRide } from '@/api/ride'
 const formData = reactive<PublishRideParams>({
   type: 'find-car',
   departure: '',
+  departureLocation: undefined,
   destination: '',
+  destinationLocation: undefined,
+  waypoints: [],
   departureTime: '',
   seats: undefined,
   price: undefined,
@@ -170,13 +211,92 @@ const errors = reactive({
 // 加载状态
 const loading = ref(false)
 
-// 最小时间（当前时间）
-const minDateTime = computed(() => {
+// 最小日期
+const minDate = computed(() => {
   const now = new Date()
-  return now.toISOString().slice(0, 16)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 })
 
-// 拼车类型切换
+// 日期和时间分开存储
+const selectedDate = ref('')
+const selectedTime = ref('')
+
+// 日期选择
+const onDateChange = (e: any) => {
+  selectedDate.value = e.detail.value
+  updateDepartureTime()
+}
+
+// 时间选择
+const onTimePickerChange = (e: any) => {
+  selectedTime.value = e.detail.value
+  updateDepartureTime()
+}
+
+// 合并日期时间
+const updateDepartureTime = () => {
+  if (selectedDate.value && selectedTime.value) {
+    formData.departureTime = `${selectedDate.value} ${selectedTime.value}`
+  } else if (selectedDate.value) {
+    formData.departureTime = selectedDate.value
+  }
+  validateField('departureTime')
+}
+// 地图选点（uni.chooseLocation 在微信小程序中编译为 wx.chooseLocation）
+const chooseLocation = (field: 'departure' | 'destination') => {
+  uni.chooseLocation({
+    success: (res: any) => {
+      if (field === 'departure') {
+        formData.departure = res.name || res.address
+        formData.departureLocation = {
+          name: res.name || res.address,
+          latitude: res.latitude,
+          longitude: res.longitude
+        }
+      } else {
+        formData.destination = res.name || res.address
+        formData.destinationLocation = {
+          name: res.name || res.address,
+          latitude: res.latitude,
+          longitude: res.longitude
+        }
+      }
+      validateField(field)
+    },
+    fail: (err: any) => {
+      if (!err.errMsg?.includes('cancel')) {
+        uni.showToast({ title: '获取位置失败，请检查定位权限', icon: 'none' })
+      }
+    }
+  })
+}
+
+// 添加途径点
+const addWaypoint = () => {
+  if ((formData.waypoints?.length ?? 0) >= 3) return
+  uni.chooseLocation({
+    success: (res: any) => {
+      if (!formData.waypoints) formData.waypoints = []
+      formData.waypoints.push({
+        name: res.name || res.address,
+        latitude: res.latitude,
+        longitude: res.longitude
+      })
+    },
+    fail: (err: any) => {
+      if (!err.errMsg?.includes('cancel')) {
+        uni.showToast({ title: '获取位置失败，请检查定位权限', icon: 'none' })
+      }
+    }
+  })
+}
+
+// 删除途径点
+const removeWaypoint = (index: number) => {
+  formData.waypoints?.splice(index, 1)
+}
+
 const onTypeChange = (e: any) => {
   formData.type = e.detail.value as RideType
   // 切换类型时清除座位数错误
@@ -184,12 +304,6 @@ const onTypeChange = (e: any) => {
     errors.seats = ''
     formData.seats = undefined
   }
-}
-
-// 时间选择
-const onTimeChange = (e: any) => {
-  formData.departureTime = e.detail.value
-  validateField('departureTime')
 }
 
 // 字段验证函数
@@ -200,11 +314,7 @@ const validateField = (field: keyof typeof formData) => {
     case 'departure':
     case 'destination':
       if (!formData[field]) {
-        errors[field] = '此项为必填项'
-      } else if (formData[field].length < 2) {
-        errors[field] = '地点名称至少2个字符'
-      } else if (formData[field].length > 50) {
-        errors[field] = '地点名称最多50个字符'
+        errors[field] = '请通过地图选择地点'
       }
       break
 
@@ -269,6 +379,9 @@ const resetForm = () => {
   formData.seats = undefined
   formData.price = undefined
   formData.note = ''
+  formData.departureLocation = undefined
+  formData.destinationLocation = undefined
+  formData.waypoints = []
 
   // 清除所有错误
   Object.keys(errors).forEach(key => {
@@ -328,12 +441,12 @@ const handleSubmit = async () => {
 .publish-page {
   min-height: 100vh;
   background-color: #F5F5F5;
-  padding-bottom: 120rpx;
+  padding: 24rpx 24rpx calc(140rpx + env(safe-area-inset-bottom));
 }
 
 .page-header {
   background-color: #FFFFFF;
-  padding: 40rpx 32rpx;
+  padding: 40rpx 48rpx;
   margin-bottom: 20rpx;
 
   .page-title {
@@ -353,7 +466,7 @@ const handleSubmit = async () => {
 
 .publish-form {
   background-color: #FFFFFF;
-  padding: 0 32rpx;
+  padding: 0 48rpx;
 }
 
 .form-section {
@@ -398,6 +511,12 @@ const handleSubmit = async () => {
     border-radius: 8rpx;
     font-size: 28rpx;
     color: #333333;
+    box-sizing: border-box;
+  }
+
+  .datetime-row {
+    display: flex;
+    gap: 16rpx;
   }
 
   .picker-input {
@@ -408,6 +527,7 @@ const handleSubmit = async () => {
     border-radius: 8rpx;
     display: flex;
     align-items: center;
+    box-sizing: border-box;
 
     .picker-value {
       font-size: 28rpx;
@@ -429,6 +549,7 @@ const handleSubmit = async () => {
     font-size: 28rpx;
     color: #333333;
     line-height: 1.6;
+    box-sizing: border-box;
   }
 
   .char-count {
@@ -451,24 +572,103 @@ const handleSubmit = async () => {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20rpx 32rpx;
+  padding: 20rpx 48rpx;
   background-color: #FFFFFF;
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   .submit-button {
     width: 100%;
     height: 88rpx;
-    background-color: #07C160;
+    background-color: #1890FF;
     color: #FFFFFF;
     border-radius: 44rpx;
     font-size: 32rpx;
     font-weight: bold;
     border: none;
     line-height: 88rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &[disabled] {
       opacity: 0.6;
     }
+  }
+}
+.location-picker {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 20rpx;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  min-height: 80rpx;
+
+  .location-icon {
+    font-size: 32rpx;
+    margin-right: 12rpx;
+  }
+
+  .location-text {
+    flex: 1;
+    font-size: 28rpx;
+    color: #333;
+  }
+
+  .location-placeholder {
+    flex: 1;
+    font-size: 28rpx;
+    color: #BFBFBF;
+  }
+
+  .location-arrow {
+    font-size: 36rpx;
+    color: #BFBFBF;
+  }
+}
+
+.waypoint-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+
+  .location-icon {
+    font-size: 28rpx;
+    margin-right: 12rpx;
+  }
+
+  .location-text {
+    flex: 1;
+    font-size: 28rpx;
+    color: #333;
+  }
+
+  .waypoint-delete {
+    font-size: 28rpx;
+    color: #999;
+    padding: 0 8rpx;
+  }
+}
+
+.add-waypoint-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  border: 2rpx dashed #1890FF;
+  border-radius: 12rpx;
+  color: #1890FF;
+  font-size: 28rpx;
+
+  &.disabled {
+    border-color: #D9D9D9;
+    color: #BFBFBF;
   }
 }
 </style>
