@@ -4,7 +4,11 @@
     <view class="search-bar">
       <view class="search-input">
         <text class="icon">🔍</text>
-        <input placeholder="搜索出发地或目的地" />
+        <input
+          v-model="searchKeyword"
+          placeholder="搜索出发地或目的地"
+          @confirm="onSearch"
+        />
       </view>
     </view>
 
@@ -37,7 +41,8 @@
         @click="viewDetail(ride)"
       >
         <view class="ride-header">
-          <image :src="ride.avatar" class="avatar" />
+          <image v-if="ride.avatar" :src="ride.avatar" class="avatar" />
+          <view v-else class="avatar-placeholder"><text>👤</text></view>
           <view class="user-info">
             <text class="username">{{ ride.username }}</text>
             <view class="rating">
@@ -78,7 +83,7 @@
 
         <view class="ride-footer">
           <text class="time">{{ ride.publishTime }}</text>
-          <button class="contact-btn" @click.stop="contactUser(ride)">
+          <button v-if="!ride.isMine" class="contact-btn" @click.stop="contactUser(ride)">
             联系TA
           </button>
         </view>
@@ -92,6 +97,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { createConversation } from '@/api/chat'
+import { getRideList, searchRides } from '@/api/ride'
+import { timLogin } from '@/utils/tim'
 
 interface Ride {
   id: string
@@ -106,6 +114,8 @@ interface Ride {
   distance?: number
   note?: string
   publishTime: string
+  userId: string
+  isMine: boolean
 }
 
 const activeTab = ref<'find-car' | 'find-passenger'>('find-car')
@@ -113,42 +123,55 @@ const rideList = ref<Ride[]>([])
 const loading = ref(false)
 const hasMore = ref(true)
 const page = ref(1)
+const searchKeyword = ref('')
+
+const formatRide = (item: any): Ride => {
+  const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}')
+  const myId = String(userInfo.id || '')
+  const rideUserId = String(item.user?.id || '')
+  return {
+    id: String(item.id),
+    type: item.type,
+    avatar: item.user?.avatar || '',
+    username: item.user?.nickname || '用户',
+    rating: item.user?.rating || 5,
+    departure: item.departure,
+    destination: item.destination,
+    departureTime: new Date(item.departureTime).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    seats: item.seats || 1,
+    note: item.note,
+    publishTime: formatTimeAgo(item.createdAt),
+    userId: rideUserId,
+    isMine: myId !== '' && myId === rideUserId,
+  }
+}
+
+const formatTimeAgo = (dateStr: string) => {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 60) return `${minutes}分钟前`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}小时前`
+  return `${Math.floor(hours / 24)}天前`
+}
 
 const switchTab = (tab: 'find-car' | 'find-passenger') => {
   activeTab.value = tab
   page.value = 1
   rideList.value = []
+  hasMore.value = true
   loadRideList()
 }
 
 const loadRideList = async () => {
-  if (loading.value) return
+  if (loading.value || !hasMore.value) return
   loading.value = true
 
   try {
-    // TODO: 调用实际 API
-    // const res = await getRideList({ type: activeTab.value, page: page.value })
-
-    // 模拟数据
-    const mockData: Ride[] = [
-      {
-        id: '1',
-        type: activeTab.value,
-        avatar: '/static/logo.png',
-        username: '张三',
-        rating: 4.8,
-        departure: '北京朝阳区',
-        destination: '北京海淀区',
-        departureTime: '今天 18:00',
-        seats: 2,
-        distance: 15,
-        note: '下班顺路，可以稍等一会',
-        publishTime: '10分钟前'
-      }
-    ]
-
-    rideList.value.push(...mockData)
-    hasMore.value = mockData.length > 0
+    const res = await getRideList({ type: activeTab.value, page: page.value, limit: 10 })
+    const newItems = (res.list || []).map(formatRide)
+    rideList.value.push(...newItems)
+    hasMore.value = newItems.length >= 10
   } catch (error) {
     console.error('加载失败', error)
     uni.showToast({ title: '加载失败', icon: 'none' })
@@ -163,16 +186,50 @@ const loadMore = () => {
   loadRideList()
 }
 
-const viewDetail = (ride: Ride) => {
-  // TODO: 跳转到详情页
-  console.log('查看详情', ride)
+const onSearch = async () => {
+  if (!searchKeyword.value.trim()) {
+    page.value = 1
+    rideList.value = []
+    hasMore.value = true
+    loadRideList()
+    return
+  }
+  try {
+    loading.value = true
+    const res = await searchRides({ keyword: searchKeyword.value, type: activeTab.value })
+    rideList.value = (res.list || []).map(formatRide)
+    hasMore.value = false
+  } catch (error) {
+    uni.showToast({ title: '搜索失败', icon: 'none' })
+  } finally {
+    loading.value = false
+  }
 }
 
-const contactUser = (ride: Ride) => {
-  // TODO: 跳转到聊天页
+const viewDetail = (ride: Ride) => {
   uni.navigateTo({
-    url: `/pages/chat/detail?userId=${ride.id}`
+    url: `/pages/ride/detail?id=${ride.id}`
   })
+}
+
+const contactUser = async (ride: Ride) => {
+  const token = uni.getStorageSync('token')
+  if (!token) {
+    uni.navigateTo({ url: '/pages/login/index' })
+    return
+  }
+  try {
+    uni.showLoading({ title: '连接中...' })
+    await timLogin()
+    const res = await createConversation(Number(ride.userId))
+    uni.hideLoading()
+    uni.navigateTo({
+      url: `/pages/chat/detail?conversationID=${res.conversationId}`,
+    })
+  } catch (err) {
+    uni.hideLoading()
+    uni.showToast({ title: '无法发起聊天', icon: 'none' })
+  }
 }
 
 onMounted(() => {
@@ -223,7 +280,7 @@ onMounted(() => {
     position: relative;
 
     &.active {
-      color: #07c160;
+      color: #1890FF;
       font-weight: bold;
 
       &::after {
@@ -234,7 +291,7 @@ onMounted(() => {
         transform: translateX(-50%);
         width: 60rpx;
         height: 6rpx;
-        background-color: #07c160;
+        background-color: #1890FF;
         border-radius: 3rpx;
       }
     }
@@ -263,6 +320,18 @@ onMounted(() => {
       height: 80rpx;
       border-radius: 50%;
       margin-right: 20rpx;
+    }
+
+    .avatar-placeholder {
+      width: 80rpx;
+      height: 80rpx;
+      border-radius: 50%;
+      margin-right: 20rpx;
+      background-color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40rpx;
     }
 
     .user-info {
@@ -294,11 +363,11 @@ onMounted(() => {
       color: #fff;
 
       &.find-car {
-        background-color: #07c160;
+        background-color: #1890FF;
       }
 
       &.find-passenger {
-        background-color: #1989fa;
+        background-color: #52C41A;
       }
     }
   }
@@ -368,7 +437,7 @@ onMounted(() => {
 
     .contact-btn {
       padding: 12rpx 32rpx;
-      background-color: #07c160;
+      background-color: #1890FF;
       color: #fff;
       border-radius: 40rpx;
       font-size: 26rpx;
