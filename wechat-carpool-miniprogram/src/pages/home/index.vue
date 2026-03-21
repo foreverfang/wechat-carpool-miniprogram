@@ -97,35 +97,22 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import type { Ride } from '@/types'
 import { createConversation } from '@/api/chat'
 import { getRideList, searchRides } from '@/api/ride'
 import { timLogin } from '@/utils/tim'
 
-interface Ride {
-  id: string
-  type: 'find-car' | 'find-passenger'
-  avatar: string
-  username: string
-  rating: number
-  departure: string
-  destination: string
-  departureTime: string
-  seats: number
-  distance?: number
-  note?: string
-  publishTime: string
-  userId: string
-  isMine: boolean
-}
+// 首页展示用，在 Ride 基础上扩展 isMine 字段
+type HomeRide = Ride & { isMine: boolean }
 
 const activeTab = ref<'find-car' | 'find-passenger'>('find-car')
-const rideList = ref<Ride[]>([])
+const rideList = ref<HomeRide[]>([])
 const loading = ref(false)
 const hasMore = ref(true)
 const page = ref(1)
 const searchKeyword = ref('')
 
-const formatRide = (item: any): Ride => {
+const formatRide = (item: any): HomeRide => {
   const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}')
   const myId = String(userInfo.id || '')
   const rideUserId = String(item.user?.id || '')
@@ -206,13 +193,13 @@ const onSearch = async () => {
   }
 }
 
-const viewDetail = (ride: Ride) => {
+const viewDetail = (ride: HomeRide) => {
   uni.navigateTo({
     url: `/pages/ride/detail?id=${ride.id}`
   })
 }
 
-const contactUser = async (ride: Ride) => {
+const contactUser = async (ride: HomeRide) => {
   const token = uni.getStorageSync('token')
   if (!token) {
     uni.navigateTo({ url: '/pages/login/index' })

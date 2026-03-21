@@ -96,17 +96,17 @@ import type { Ride } from '@/types'
 const ride = ref<Ride | null>(null)
 const loading = ref(false)
 
-// 当前用户 ID（从本地存储获取）
-const currentUserId = uni.getStorageSync('userId') || ''
-const isOwner = computed(() => ride.value?.userId === currentUserId)
+// 当前用户 ID（onLoad 时读取，避免启动时序问题）
+const currentUserId = ref('')
+const isOwner = computed(() => !!ride.value && ride.value.userId === currentUserId.value)
 
 onLoad(async (options) => {
   const id = options?.id
   if (!id) return
   loading.value = true
+  currentUserId.value = uni.getStorageSync('userId') || ''
   try {
-    const res = await getRideDetail(id)
-    ride.value = res.data
+    ride.value = await getRideDetail(id)
   } catch {
     uni.showToast({ title: '加载失败', icon: 'none' })
   } finally {
@@ -329,7 +329,7 @@ const contactOwner = () => {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20rpx 48rpx;
+  padding: 20rpx 48rpx calc(20rpx + env(safe-area-inset-bottom));
   background: #fff;
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
 
