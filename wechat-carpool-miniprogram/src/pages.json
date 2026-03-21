@@ -8,9 +8,23 @@
 			}
 		},
 		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
 			"path": "pages/publish/index",
 			"style": {
 				"navigationBarTitleText": "发布拼车"
+			}
+		},
+		{
+			"path": "pages/ride/detail",
+			"style": {
+				"navigationBarTitleText": "拼车详情"
 			}
 		},
 		{
@@ -42,17 +56,30 @@
 			"style": {
 				"navigationBarTitleText": "统计数据"
 			}
+		},
+		{
+			"path": "TUIKit/components/TUIChat/index",
+			"style": {
+				"navigationBarTitleText": "聊天",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "TUIKit/components/TUIConversation/index",
+			"style": {
+				"navigationBarTitleText": "消息"
+			}
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
 		"navigationBarTitleText": "拼车小程序",
-		"navigationBarBackgroundColor": "#07C160",
+		"navigationBarBackgroundColor": "#1890FF",
 		"backgroundColor": "#F5F5F5"
 	},
 	"tabBar": {
 		"color": "#999999",
-		"selectedColor": "#07C160",
+		"selectedColor": "#1890FF",
 		"backgroundColor": "#FFFFFF",
 		"borderStyle": "black",
 		"list": [
@@ -81,5 +108,11 @@
 				"selectedIconPath": "static/images/profile-active.png"
 			}
 		]
+	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+		}
 	}
 }
