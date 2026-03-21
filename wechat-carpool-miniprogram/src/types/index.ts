@@ -1,5 +1,11 @@
 // 拼车相关类型定义
 
+export interface LocationPoint {
+  name: string
+  latitude: number
+  longitude: number
+}
+
 export type RideType = 'find-car' | 'find-passenger'
 export type RideStatus = 'pending' | 'ongoing' | 'completed' | 'cancelled'
 
@@ -11,15 +17,10 @@ export interface Ride {
   username: string
   rating: number
   departure: string
-  departureLocation: {
-    latitude: number
-    longitude: number
-  }
+  departureLocation: LocationPoint
   destination: string
-  destinationLocation: {
-    latitude: number
-    longitude: number
-  }
+  destinationLocation: LocationPoint
+  waypoints?: LocationPoint[]
   departureTime: string
   seats: number
   acceptDistance?: number // 人找车：可接受距离
@@ -87,7 +88,10 @@ export interface Statistics {
 export interface PublishRideParams {
   type: RideType
   departure: string
+  departureLocation?: LocationPoint
   destination: string
+  destinationLocation?: LocationPoint
+  waypoints?: LocationPoint[]
   departureTime: string
   seats?: number
   price?: number
