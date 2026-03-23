@@ -224,6 +224,7 @@ const contactUser = async (ride: HomeRide) => {
 }
 
 onMounted(() => {
+  lastLoadTime = Date.now()  // 初始化为当前时间
   loadRideList()
 })
 
@@ -239,6 +240,9 @@ onPullDownRefresh(() => {
 
 // 页面显示时检查是否需要刷新
 onShow(() => {
+  // 搜索状态下不自动刷新
+  if (searchKeyword.value.trim()) return
+
   const now = Date.now()
   // 如果距离上次加载超过5秒,则刷新列表
   if (now - lastLoadTime > 5000) {
