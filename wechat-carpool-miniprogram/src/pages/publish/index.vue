@@ -245,6 +245,41 @@ const updateDepartureTime = () => {
 }
 // 地图选点（uni.chooseLocation 在微信小程序中编译为 wx.chooseLocation）
 const chooseLocation = (field: 'departure' | 'destination') => {
+  // 先检查并请求位置权限
+  uni.getSetting({
+    success: (res) => {
+      if (!res.authSetting['scope.userLocation']) {
+        // 未授权,请求授权
+        uni.authorize({
+          scope: 'scope.userLocation',
+          success: () => {
+            // 授权成功,打开地图选点
+            openLocationPicker(field)
+          },
+          fail: () => {
+            // 授权失败,引导用户手动开启
+            uni.showModal({
+              title: '需要位置权限',
+              content: '选择地点需要获取您的位置信息,请在设置中开启位置权限',
+              confirmText: '去设置',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  uni.openSetting()
+                }
+              }
+            })
+          }
+        })
+      } else {
+        // 已授权,直接打开地图选点
+        openLocationPicker(field)
+      }
+    }
+  })
+}
+
+// 打开地图选点
+const openLocationPicker = (field: 'departure' | 'destination') => {
   uni.chooseLocation({
     success: (res: any) => {
       if (field === 'departure') {
@@ -275,6 +310,39 @@ const chooseLocation = (field: 'departure' | 'destination') => {
 // 添加途径点
 const addWaypoint = () => {
   if ((formData.waypoints?.length ?? 0) >= 3) return
+
+  // 先检查并请求位置权限
+  uni.getSetting({
+    success: (res) => {
+      if (!res.authSetting['scope.userLocation']) {
+        // 未授权,请求授权
+        uni.authorize({
+          scope: 'scope.userLocation',
+          success: () => {
+            openWaypointPicker()
+          },
+          fail: () => {
+            uni.showModal({
+              title: '需要位置权限',
+              content: '选择地点需要获取您的位置信息,请在设置中开启位置权限',
+              confirmText: '去设置',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  uni.openSetting()
+                }
+              }
+            })
+          }
+        })
+      } else {
+        openWaypointPicker()
+      }
+    }
+  })
+}
+
+// 打开途径点选择器
+const openWaypointPicker = () => {
   uni.chooseLocation({
     success: (res: any) => {
       if (!formData.waypoints) formData.waypoints = []
@@ -382,6 +450,13 @@ const resetForm = () => {
   formData.departureLocation = undefined
   formData.destinationLocation = undefined
   formData.waypoints = []
+
+  // 重置日期时间为当前时间
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  selectedDate.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  selectedTime.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`
+  updateDepartureTime()
 
   // 清除所有错误
   Object.keys(errors).forEach(key => {
