@@ -41,14 +41,14 @@
 ### 问题3: 车找人途径点路线图不显示
 
 **根本原因:**
-- 详情页代码中 `hasMapData` 计算属性只检查出发地和目的地坐标
-- 但后端 API 可能未返回途径点的坐标数据
-- 或者前端解析途径点数据时丢失了坐标信息
+- 后端 `ride.service.ts` 的 `getRideById` 方法(第110-143行)返回数据时,只返回了 `departure` 和 `destination` 字符串
+- **缺少返回** `departureLocation`、`destinationLocation` 和 `waypoints` 字段
+- 虽然数据库实体中存储了这些坐标数据,但在序列化返回时被遗漏了
+- 前端详情页的 `hasMapData` 检查 `departureLocation.latitude` 时为 undefined,导致地图不显示
 
 **影响范围:**
-- 文件: `wechat-carpool-miniprogram/src/pages/ride/detail.vue`
-- 文件: `wechat-carpool-miniprogram/src/api/ride.ts`
-- 可能涉及后端 API
+- 文件: `backend/src/modules/ride/ride.service.ts` (主要修改)
+- 文件: `wechat-carpool-miniprogram/src/pages/ride/detail.vue` (无需修改,逻辑正确)
 
 ### 问题4: 联系TA聊天页白屏
 
@@ -160,46 +160,71 @@ const loadRideList = async () => {
 
 #### 3. 路线图显示
 
-**修改文件:** `pages/ride/detail.vue`, 可能需要检查 `api/ride.ts`
+**修改文件:** `backend/src/modules/ride/ride.service.ts`
 
 **实现步骤:**
-1. 检查 API 响应数据结构
-2. 确认途径点是否包含坐标信息
-3. 如果后端未返回坐标,需要修改后端 API
-4. 如果前端解析有问题,修复数据映射逻辑
+1. 修改 `getRideById` 方法的返回数据结构
+2. 添加 `departureLocation`、`destinationLocation` 和 `waypoints` 字段
+3. 确保这些字段从数据库实体中正确读取并返回
 
-**数据结构验证:**
+**代码修改:**
+在 `ride.service.ts` 的 `getRideById` 方法中(第124-142行),修改返回对象:
+
 ```typescript
-// 期望的 API 响应格式
-{
-  id: 1,
-  type: 'find-passenger',
-  departure: '北京站',
-  departureLocation: { latitude: 39.9, longitude: 116.4 },
-  destination: '首都机场',
-  destinationLocation: { latitude: 40.08, longitude: 116.58 },
-  waypoints: [
-    { name: '三元桥', latitude: 39.97, longitude: 116.46 },
-    { name: '望京', latitude: 40.0, longitude: 116.48 }
-  ]
-}
+return {
+  id: ride.id,
+  type: ride.type,
+  departure: ride.departure,
+  departureLocation: ride.departureLocation,  // 新增
+  destination: ride.destination,
+  destinationLocation: ride.destinationLocation,  // 新增
+  waypoints: ride.waypoints,  // 新增
+  departureTime: ride.departureTime,
+  seats: ride.seats,
+  price: ride.price,
+  note: ride.note,
+  status: ride.status,
+  viewCount: ride.viewCount,
+  createdAt: ride.createdAt,
+  user: {
+    id: ride.user.id,
+    nickname: ride.user.nickname,
+    avatar: ride.user.avatar,
+    rating: ride.user.rating,
+  },
+};
 ```
 
-**前端验证逻辑:**
+**同样需要修改 `findRides` 方法:**
+在列表接口中也应该返回坐标信息,以便首页可以显示距离等信息(第81-99行):
+
 ```typescript
-// 在 onLoad 中添加调试日志
-onLoad(async (options) => {
-  // ... 现有逻辑 ...
-  try {
-    ride.value = await getRideDetail(id)
-    console.log('Ride detail:', ride.value)
-    console.log('Waypoints:', ride.value.waypoints)
-    console.log('Has map data:', hasMapData.value)
-  } catch {
-    // ... 错误处理 ...
-  }
-})
+list: rides.map(ride => ({
+  id: ride.id,
+  type: ride.type,
+  departure: ride.departure,
+  departureLocation: ride.departureLocation,  // 新增
+  destination: ride.destination,
+  destinationLocation: ride.destinationLocation,  // 新增
+  waypoints: ride.waypoints,  // 新增(车找人时有值)
+  departureTime: ride.departureTime,
+  seats: ride.seats,
+  price: ride.price,
+  note: ride.note,
+  status: ride.status,
+  viewCount: ride.viewCount,
+  createdAt: ride.createdAt,
+  user: {
+    id: ride.user.id,
+    nickname: ride.user.nickname,
+    avatar: ride.user.avatar,
+    rating: ride.user.rating,
+  },
+})),
 ```
+
+**前端无需修改:**
+前端 `pages/ride/detail.vue` 的逻辑已经正确,会自动处理返回的坐标数据并渲染地图。
 
 #### 4. 聊天页跳转
 
@@ -333,9 +358,10 @@ const contactUser = async (ride: HomeRide) => {
 1. 修复问题1(首页下拉刷新) - 预计10分钟
 2. 修复问题4(聊天跳转) - 预计5分钟
 3. 修复问题2(表单重置) - 预计15分钟
-4. 调查问题3(路线图) - 预计20分钟
-5. 修复问题3 - 根据调查结果确定
-6. 集成测试 - 预计30分钟
+4. 修复问题3(后端返回坐标数据) - 预计10分钟
+5. 集成测试 - 预计30分钟
+
+**总计:** 约70分钟
 
 ## 总结
 
