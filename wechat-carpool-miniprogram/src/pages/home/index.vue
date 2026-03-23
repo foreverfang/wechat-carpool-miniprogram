@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onPullDownRefresh } from 'vue'
 import type { Ride } from '@/types'
 import { createConversation } from '@/api/chat'
 import { getRideList, searchRides } from '@/api/ride'
@@ -221,6 +221,16 @@ const contactUser = async (ride: HomeRide) => {
 
 onMounted(() => {
   loadRideList()
+})
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  page.value = 1
+  rideList.value = []
+  hasMore.value = true
+  loadRideList().finally(() => {
+    uni.stopPullDownRefresh()
+  })
 })
 </script>
 
