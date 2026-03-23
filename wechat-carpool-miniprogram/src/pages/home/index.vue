@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onPullDownRefresh } from 'vue'
+import { ref, onMounted, onPullDownRefresh, onShow } from 'vue'
 import type { Ride } from '@/types'
 import { createConversation } from '@/api/chat'
 import { getRideList, searchRides } from '@/api/ride'
@@ -142,6 +142,9 @@ const formatTimeAgo = (dateStr: string) => {
   return `${Math.floor(hours / 24)}天前`
 }
 
+// 记录上次加载时间,用于 onShow 判断是否需要刷新
+let lastLoadTime = 0
+
 const switchTab = (tab: 'find-car' | 'find-passenger') => {
   activeTab.value = tab
   page.value = 1
@@ -159,6 +162,7 @@ const loadRideList = async () => {
     const newItems = (res.list || []).map(formatRide)
     rideList.value.push(...newItems)
     hasMore.value = newItems.length >= 10
+    lastLoadTime = Date.now()  // 更新时间戳
   } catch (error) {
     console.error('加载失败', error)
     uni.showToast({ title: '加载失败', icon: 'none' })
@@ -231,6 +235,18 @@ onPullDownRefresh(() => {
   loadRideList().finally(() => {
     uni.stopPullDownRefresh()
   })
+})
+
+// 页面显示时检查是否需要刷新
+onShow(() => {
+  const now = Date.now()
+  // 如果距离上次加载超过5秒,则刷新列表
+  if (now - lastLoadTime > 5000) {
+    page.value = 1
+    rideList.value = []
+    hasMore.value = true
+    loadRideList()
+  }
 })
 </script>
 
