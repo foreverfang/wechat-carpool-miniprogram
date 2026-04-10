@@ -12,7 +12,9 @@
       "outputPath": ""
     },
     "useCompilerPlugins": false,
-    "minifyWXML": true
+    "minifyWXML": true,
+    "ignoreDevUnusedFiles": false,
+    "ignoreUploadUnusedFiles": false
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
@@ -20,6 +22,6 @@
     "ignore": [],
     "include": []
   },
-  "appid": "wx6d593c83db11a272",
+  "appid": "wxe1bab79aee1cd608",
   "editorSetting": {}
 }

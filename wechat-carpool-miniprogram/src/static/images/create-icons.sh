@@ -3,6 +3,6 @@
 for icon in home publish chat profile; do
   # 普通状态 - 灰色
   convert -size 81x81 xc:#999999 "${icon}.png"
-  # 选中状态 - 绿色
-  convert -size 81x81 xc:#07C160 "${icon}-active.png"
+  # 选中状态 - 蓝色
+  convert -size 81x81 xc:#1890FF "${icon}-active.png"
 done

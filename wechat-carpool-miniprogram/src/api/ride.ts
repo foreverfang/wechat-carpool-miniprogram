@@ -5,7 +5,7 @@ import type { Ride, RideType, PublishRideParams } from '@/types'
 export const getRideList = (params: {
   type: RideType
   page: number
-  pageSize?: number
+  limit?: number
 }) => {
   return request<{ list: Ride[]; total: number }>({
     url: '/rides',

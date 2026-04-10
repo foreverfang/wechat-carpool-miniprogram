@@ -4,7 +4,7 @@ import type { User, Statistics } from '@/types'
 // 获取用户信息
 export const getUserInfo = () => {
   return request<User>({
-    url: '/user/info',
+    url: '/users/profile',
     method: 'GET'
   })
 }
@@ -12,8 +12,8 @@ export const getUserInfo = () => {
 // 更新用户信息
 export const updateUserInfo = (data: Partial<User>) => {
   return request<User>({
-    url: '/user/info',
-    method: 'PUT',
+    url: '/users/profile',
+    method: 'PATCH',
     data
   })
 }
@@ -21,15 +21,24 @@ export const updateUserInfo = (data: Partial<User>) => {
 // 获取用户统计数据
 export const getUserStatistics = () => {
   return request<Statistics>({
-    url: '/user/statistics',
+    url: '/users/statistics',
     method: 'GET'
+  })
+}
+
+// 获取用户拼车记录
+export const getUserRides = (status?: string) => {
+  return request<any[]>({
+    url: '/users/rides',
+    method: 'GET',
+    data: status ? { status } : undefined
   })
 }
 
 // 微信登录
 export const wxLogin = (code: string) => {
   return request<{ token: string; user: User }>({
-    url: '/auth/wx-login',
+    url: '/auth/wechat-login',
     method: 'POST',
     data: { code }
   })
@@ -41,7 +50,7 @@ export const verifyIdentity = (data: {
   idCard: string
 }) => {
   return request<void>({
-    url: '/user/verify',
+    url: '/users/verify',
     method: 'POST',
     data
   })

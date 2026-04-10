@@ -1,5 +1,5 @@
 <template>
-  <view class="chat-detail-container">
+  <view class="tuikit-chat-page">
     <TUIChat />
   </view>
 </template>
@@ -8,12 +8,11 @@
 import { onLoad } from '@dcloudio/uni-app';
 import { TUIConversationService } from '@tencentcloud/chat-uikit-engine-lite';
 import TUIChat from '@tencentcloud/chat-uikit-uniapp/components/TUIChat/index.vue';
-import { timLogin } from '@/utils/tim';
+import { timLogin } from '../../../utils/tim';
 
 onLoad(async (options) => {
   await timLogin();
 
-  // 支持从拼车页面直接跳转到指定会话
   if (options?.conversationID) {
     const { conversationID } = options;
     if (conversationID.startsWith('C2C') || conversationID.startsWith('GROUP')) {
@@ -23,8 +22,8 @@ onLoad(async (options) => {
 });
 </script>
 
-<style scoped lang="scss">
-.chat-detail-container {
+<style scoped>
+.tuikit-chat-page {
   height: 100vh;
 }
 </style>

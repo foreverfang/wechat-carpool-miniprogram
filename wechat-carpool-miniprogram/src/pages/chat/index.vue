@@ -1,182 +1,128 @@
 <template>
   <view class="chat-container">
-    <scroll-view class="chat-list" scroll-y>
-      <view
-        v-for="chat in chatList"
-        :key="chat.id"
-        class="chat-item"
-        @click="openChat(chat)"
-      >
-        <image :src="chat.avatar" class="avatar" />
-        <view class="chat-content">
-          <view class="chat-header">
-            <text class="username">{{ chat.username }}</text>
-            <text class="time">{{ chat.lastMessageTime }}</text>
-          </view>
-          <view class="chat-footer">
-            <text class="last-message">{{ chat.lastMessage }}</text>
-            <view v-if="chat.unreadCount > 0" class="unread-badge">
-              {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
-            </view>
-          </view>
-        </view>
-      </view>
+    <!-- 未登录 -->
+    <view v-if="!isLoggedIn" class="center-tip">
+      <text class="tip-icon">💬</text>
+      <text class="tip-text">请先登录后查看消息</text>
+      <button class="login-btn" @click="goLogin">去登录</button>
+    </view>
 
-      <view v-if="chatList.length === 0" class="empty">
-        <text class="empty-icon">💬</text>
-        <text class="empty-text">暂无消息</text>
+    <!-- 连接中 -->
+    <view v-else-if="!imReady" class="center-tip">
+      <text class="tip-icon">⏳</text>
+      <text class="tip-text">正在连接消息服务...</text>
+    </view>
+
+    <!-- 已登录已连接 -->
+    <view v-else class="conversation-wrap">
+      <!-- 无会话空状态 -->
+      <view v-if="conversationList.length === 0" class="center-tip">
+        <text class="tip-icon">💬</text>
+        <text class="tip-text">暂无消息</text>
+        <text class="tip-sub">去首页联系拼车伙伴吧</text>
       </view>
-    </scroll-view>
+      <TUIConversation
+        v-show="conversationList.length > 0"
+        @handleSwitchConversation="handleSwitchConversation"
+      />
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
+import TUIConversation from '@tencentcloud/chat-uikit-uniapp/components/TUIConversation/index.vue';
+import { TUIStore, StoreName } from '@tencentcloud/chat-uikit-engine-lite';
+import { timLogin } from '@/utils/tim';
 
-interface Chat {
-  id: string
-  avatar: string
-  username: string
-  lastMessage: string
-  lastMessageTime: string
-  unreadCount: number
-}
+const isLoggedIn = ref(false);
+const imReady = ref(false);
+const conversationList = ref<any[]>([]);
 
-const chatList = ref<Chat[]>([])
-
-const loadChatList = async () => {
-  try {
-    // TODO: 调用实际 API
-    // const res = await getChatList()
-
-    // 模拟数据
-    chatList.value = [
-      {
-        id: '1',
-        avatar: '/static/logo.png',
-        username: '张三',
-        lastMessage: '好的，那我们18:00在地铁站见',
-        lastMessageTime: '10:30',
-        unreadCount: 2
-      },
-      {
-        id: '2',
-        avatar: '/static/logo.png',
-        username: '李四',
-        lastMessage: '请问还有座位吗？',
-        lastMessageTime: '昨天',
-        unreadCount: 0
-      }
-    ]
-  } catch (error) {
-    console.error('加载失败', error)
+onShow(async () => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    isLoggedIn.value = false;
+    imReady.value = false;
+    return;
   }
-}
+  isLoggedIn.value = true;
+  try {
+    await timLogin();
+    imReady.value = true;
+    TUIStore.watch(StoreName.CONV, {
+      conversationList: (list: any[]) => {
+        conversationList.value = list || [];
+      },
+    });
+  } catch (e) {
+    console.error('IM 登录失败', e);
+    imReady.value = false;
+  }
+});
 
-const openChat = (chat: Chat) => {
+const goLogin = () => {
+  uni.navigateTo({ url: '/pages/login/index' });
+};
+
+const handleSwitchConversation = (conversationID: string) => {
   uni.navigateTo({
-    url: `/pages/chat/detail?userId=${chat.id}`
-  })
-}
-
-onMounted(() => {
-  loadChatList()
-})
+    url: `/pages/chat/detail?conversationID=${conversationID}`,
+  });
+};
 </script>
+
+<style lang="scss">
+.chat-container .tui-conversation-header {
+  display: none !important;
+}
+</style>
 
 <style scoped lang="scss">
 .chat-container {
-  min-height: 100vh;
+  height: 100vh;
   background-color: #f5f5f5;
 }
 
-.chat-list {
-  height: 100vh;
-}
-
-.chat-item {
-  display: flex;
-  padding: 24rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-
-  .avatar {
-    width: 96rpx;
-    height: 96rpx;
-    border-radius: 50%;
-    margin-right: 20rpx;
-  }
-
-  .chat-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-
-    .chat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12rpx;
-
-      .username {
-        font-size: 32rpx;
-        font-weight: bold;
-        color: #333;
-      }
-
-      .time {
-        font-size: 24rpx;
-        color: #999;
-      }
-    }
-
-    .chat-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .last-message {
-        flex: 1;
-        font-size: 28rpx;
-        color: #666;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .unread-badge {
-        min-width: 36rpx;
-        height: 36rpx;
-        padding: 0 8rpx;
-        background-color: #ff4d4f;
-        color: #fff;
-        border-radius: 18rpx;
-        font-size: 20rpx;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-left: 16rpx;
-      }
-    }
-  }
-}
-
-.empty {
+.center-tip {
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 200rpx 0;
+  gap: 24rpx;
 
-  .empty-icon {
-    font-size: 120rpx;
-    margin-bottom: 24rpx;
+  .tip-icon {
+    font-size: 100rpx;
+    line-height: 1;
+    opacity: 0.5;
   }
 
-  .empty-text {
-    font-size: 28rpx;
+  .tip-text {
+    font-size: 32rpx;
     color: #999;
   }
+
+  .tip-sub {
+    font-size: 26rpx;
+    color: #bbb;
+  }
+
+  .login-btn {
+    margin-top: 16rpx;
+    width: 280rpx;
+    height: 80rpx;
+    background-color: #1890FF;
+    color: #fff;
+    border-radius: 40rpx;
+    font-size: 28rpx;
+    border: none;
+    line-height: 80rpx;
+  }
+}
+
+.conversation-wrap {
+  height: 100%;
 }
 </style>

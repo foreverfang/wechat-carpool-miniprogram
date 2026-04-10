@@ -71,6 +71,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { getUserRides } from '@/api/user'
 
 type RecordStatus = 'pending' | 'ongoing' | 'completed' | 'cancelled'
 type RecordType = 'published' | 'joined'
@@ -89,7 +90,7 @@ interface Record {
 
 const tabs = [
   { label: '全部', value: 'all' },
-  { label: '进行中', value: 'ongoing' },
+  { label: '进行中', value: 'active' },
   { label: '已完成', value: 'completed' },
   { label: '已取消', value: 'cancelled' }
 ]
@@ -104,36 +105,25 @@ const switchTab = (tab: string) => {
 
 const loadRecords = async () => {
   try {
-    // TODO: 调用实际 API
-    // const res = await getRecords({ status: activeTab.value })
-
-    // 模拟数据
-    recordList.value = [
-      {
-        id: '1',
-        type: 'published',
-        status: 'completed',
-        departure: '北京朝阳区',
-        destination: '北京海淀区',
-        date: '2024-03-01',
-        time: '18:00',
-        seats: 2,
-        rated: false
-      },
-      {
-        id: '2',
-        type: 'joined',
-        status: 'ongoing',
-        departure: '北京西城区',
-        destination: '北京东城区',
-        date: '2024-03-04',
-        time: '09:00',
-        seats: 1,
-        rated: false
+    const status = activeTab.value === 'all' ? undefined : activeTab.value
+    const res = await getUserRides(status)
+    recordList.value = (res || []).map((item: any) => {
+      const dt = new Date(item.departureTime)
+      return {
+        id: String(item.id),
+        type: 'published' as RecordType,
+        status: item.status === 'active' ? 'ongoing' : item.status,
+        departure: item.departure,
+        destination: item.destination,
+        date: dt.toLocaleDateString('zh-CN'),
+        time: dt.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        seats: item.seats || 1,
+        rated: false,
       }
-    ]
+    })
   } catch (error) {
     console.error('加载失败', error)
+    uni.showToast({ title: '加载失败', icon: 'none' })
   }
 }
 
@@ -148,12 +138,10 @@ const getStatusText = (status: RecordStatus) => {
 }
 
 const viewDetail = (record: Record) => {
-  // TODO: 跳转到详情页
   console.log('查看详情', record)
 }
 
 const rateRide = (record: Record) => {
-  // TODO: 打开评价弹窗
   uni.showToast({ title: '评价功能', icon: 'none' })
 }
 
@@ -184,7 +172,7 @@ onMounted(() => {
     border-radius: 40rpx;
 
     &.active {
-      background-color: #07c160;
+      background-color: #1890FF;
       color: #fff;
       font-weight: bold;
     }
@@ -287,7 +275,7 @@ onMounted(() => {
 
     .rate-btn {
       padding: 12rpx 32rpx;
-      background-color: #07c160;
+      background-color: #1890FF;
       color: #fff;
       border-radius: 40rpx;
       font-size: 26rpx;

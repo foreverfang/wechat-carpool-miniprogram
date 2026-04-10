@@ -40,7 +40,7 @@
       <view class="distribution-list">
         <view class="distribution-item">
           <view class="item-left">
-            <view class="color-dot" style="background-color: #07c160"></view>
+            <view class="color-dot" style="background-color: #1890FF"></view>
             <text class="label">人找车</text>
           </view>
           <view class="item-right">
@@ -214,7 +214,7 @@ onMounted(() => {
       .value {
         font-size: 40rpx;
         font-weight: bold;
-        color: #07c160;
+        color: #1890FF;
         margin-bottom: 12rpx;
       }
 
@@ -334,7 +334,7 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #07c160;
+        background-color: #1890FF;
         color: #fff;
         border-radius: 50%;
         font-size: 24rpx;

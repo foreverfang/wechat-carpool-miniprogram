@@ -1,44 +1,18 @@
 import request from '@/utils/request'
-import type { Chat, Message } from '@/types'
 
-// 获取聊天列表
-export const getChatList = () => {
-  return request<{ list: Chat[] }>({
-    url: '/chats',
-    method: 'GET'
-  })
-}
-
-// 获取聊天消息
-export const getMessages = (params: {
-  userId: string
-  page: number
-  pageSize?: number
-}) => {
-  return request<{ list: Message[]; total: number }>({
-    url: '/messages',
+// 获取 IM UserSig（用于登录腾讯云 IM）
+export const getUserSig = () => {
+  return request<{ imUserId: string; userSig: string; sdkAppId: number }>({
+    url: '/chat/user-sig',
     method: 'GET',
-    data: params
   })
 }
 
-// 发送消息
-export const sendMessage = (data: {
-  toUserId: string
-  content: string
-  type?: 'text' | 'image' | 'location'
-}) => {
-  return request<Message>({
-    url: '/messages',
+// 创建单聊会话（验证拼车关联）
+export const createConversation = (targetUserId: number) => {
+  return request<{ fromImId: string; toImId: string; conversationId: string }>({
+    url: '/chat/conversation',
     method: 'POST',
-    data
-  })
-}
-
-// 标记消息已读
-export const markAsRead = (userId: string) => {
-  return request<void>({
-    url: `/messages/read/${userId}`,
-    method: 'POST'
+    data: { targetUserId },
   })
 }

@@ -1,89 +1,112 @@
 <template>
   <view class="profile-container">
-    <!-- 用户信息卡片 -->
-    <view class="user-card">
-      <image :src="userInfo.avatar" class="avatar" />
-      <view class="user-info">
-        <text class="username">{{ userInfo.username }}</text>
-        <view class="rating">
-          <text class="star">⭐</text>
-          <text class="score">{{ userInfo.rating }}</text>
-          <text class="verified" v-if="userInfo.verified">✓ 已认证</text>
-        </view>
-      </view>
-      <text class="edit-icon" @click="editProfile">›</text>
+    <!-- 未登录状态 -->
+    <view v-if="!isLoggedIn" class="login-tip">
+      <text class="tip-icon-text">👤</text>
+      <text class="tip-text">登录后查看个人信息</text>
+      <button class="login-btn" @click="goLogin">去登录</button>
     </view>
 
-    <!-- 统计数据 -->
-    <view class="stats-card">
-      <view class="stat-item" @click="viewRecords('published')">
-        <text class="stat-value">{{ stats.published }}</text>
-        <text class="stat-label">发布次数</text>
-      </view>
-      <view class="stat-item" @click="viewRecords('joined')">
-        <text class="stat-value">{{ stats.joined }}</text>
-        <text class="stat-label">参与次数</text>
-      </view>
-      <view class="stat-item" @click="viewRecords('completed')">
-        <text class="stat-value">{{ stats.completed }}</text>
-        <text class="stat-label">完成次数</text>
-      </view>
-    </view>
-
-    <!-- 功能菜单 -->
-    <view class="menu-section">
-      <view class="menu-item" @click="navigateTo('/pages/profile/records')">
-        <view class="menu-left">
-          <text class="menu-icon">📋</text>
-          <text class="menu-text">拼车记录</text>
+    <!-- 已登录状态 -->
+    <template v-else>
+      <!-- 用户信息卡片 -->
+      <view class="user-card">
+        <image v-if="userInfo.avatar" :src="userInfo.avatar" class="avatar" />
+        <view v-else class="avatar-placeholder">
+          <text class="avatar-emoji">👤</text>
         </view>
-        <text class="menu-arrow">›</text>
+        <view class="user-info">
+          <text class="username">{{ userInfo.username }}</text>
+          <view class="rating">
+            <text class="star">⭐</text>
+            <text class="score">{{ userInfo.rating }}</text>
+            <text class="verified" v-if="userInfo.verified">✓ 已认证</text>
+          </view>
+        </view>
+        <text class="edit-icon" @click="editProfile">›</text>
       </view>
 
-      <view class="menu-item" @click="navigateTo('/pages/profile/statistics')">
-        <view class="menu-left">
-          <text class="menu-icon">📊</text>
-          <text class="menu-text">统计数据</text>
+      <!-- 统计数据 -->
+      <view class="stats-card">
+        <view class="stat-item" @click="viewRecords('published')">
+          <text class="stat-value">{{ stats.published }}</text>
+          <text class="stat-label">发布次数</text>
         </view>
-        <text class="menu-arrow">›</text>
+        <view class="stat-item" @click="viewRecords('joined')">
+          <text class="stat-value">{{ stats.joined }}</text>
+          <text class="stat-label">参与次数</text>
+        </view>
+        <view class="stat-item" @click="viewRecords('completed')">
+          <text class="stat-value">{{ stats.completed }}</text>
+          <text class="stat-label">完成次数</text>
+        </view>
       </view>
 
-      <view class="menu-item" @click="viewRatings">
-        <view class="menu-left">
-          <text class="menu-icon">⭐</text>
-          <text class="menu-text">我的评价</text>
+      <!-- 功能菜单 -->
+      <view class="menu-section">
+        <view class="menu-item" @click="navigateTo('/pages/profile/records')">
+          <view class="menu-left">
+            <text class="menu-icon">📋</text>
+            <text class="menu-text">拼车记录</text>
+          </view>
+          <text class="menu-arrow">›</text>
         </view>
-        <text class="menu-arrow">›</text>
-      </view>
-    </view>
 
-    <view class="menu-section">
-      <view class="menu-item" @click="handleAuth">
-        <view class="menu-left">
-          <text class="menu-icon">🔐</text>
-          <text class="menu-text">实名认证</text>
+        <view class="menu-item" @click="navigateTo('/pages/profile/statistics')">
+          <view class="menu-left">
+            <text class="menu-icon">📊</text>
+            <text class="menu-text">统计数据</text>
+          </view>
+          <text class="menu-arrow">›</text>
         </view>
-        <view class="menu-right">
-          <text class="status" :class="userInfo.verified ? 'verified' : ''">
-            {{ userInfo.verified ? '已认证' : '未认证' }}
-          </text>
+
+        <view class="menu-item" @click="viewRatings">
+          <view class="menu-left">
+            <text class="menu-icon">⭐</text>
+            <text class="menu-text">我的评价</text>
+          </view>
           <text class="menu-arrow">›</text>
         </view>
       </view>
 
-      <view class="menu-item" @click="handleSettings">
-        <view class="menu-left">
-          <text class="menu-icon">⚙️</text>
-          <text class="menu-text">设置</text>
+      <view class="menu-section">
+        <view class="menu-item" @click="handleAuth">
+          <view class="menu-left">
+            <text class="menu-icon">🔐</text>
+            <text class="menu-text">实名认证</text>
+          </view>
+          <view class="menu-right">
+            <text class="status" :class="userInfo.verified ? 'verified' : ''">
+              {{ userInfo.verified ? '已认证' : '未认证' }}
+            </text>
+            <text class="menu-arrow">›</text>
+          </view>
         </view>
-        <text class="menu-arrow">›</text>
+
+        <view class="menu-item" @click="handleSettings">
+          <view class="menu-left">
+            <text class="menu-icon">⚙️</text>
+            <text class="menu-text">设置</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
+
+        <view class="menu-item" @click="handleLogout">
+          <view class="menu-left">
+            <text class="menu-icon">🚪</text>
+            <text class="menu-text">退出登录</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
       </view>
-    </view>
+    </template>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { getUserInfo, getUserStatistics } from '@/api/user'
 
 interface UserInfo {
   avatar: string
@@ -98,41 +121,63 @@ interface Stats {
   completed: number
 }
 
+const isLoggedIn = ref(false)
 const userInfo = ref<UserInfo>({
-  avatar: '/static/logo.png',
+  avatar: '',
   username: '用户名',
-  rating: 4.8,
+  rating: 5.0,
   verified: false
 })
 
 const stats = ref<Stats>({
-  published: 12,
-  joined: 8,
-  completed: 18
+  published: 0,
+  joined: 0,
+  completed: 0
 })
 
 const loadUserInfo = async () => {
   try {
-    // TODO: 调用实际 API
-    // const res = await getUserInfo()
-    // userInfo.value = res.data
+    const res = await getUserInfo()
+    userInfo.value = {
+      avatar: (res as any).avatar || '',
+      username: (res as any).nickname || '用户名',
+      rating: (res as any).rating || 5.0,
+      verified: (res as any).isVerified || false,
+    }
   } catch (error) {
-    console.error('加载失败', error)
+    console.error('加载用户信息失败', error)
   }
 }
 
 const loadStats = async () => {
   try {
-    // TODO: 调用实际 API
-    // const res = await getUserStats()
-    // stats.value = res.data
+    const res = await getUserStatistics()
+    stats.value = {
+      published: (res as any).published || 0,
+      joined: (res as any).findCar || 0,
+      completed: (res as any).completed || 0,
+    }
   } catch (error) {
-    console.error('加载失败', error)
+    console.error('加载统计失败', error)
   }
 }
 
+onShow(() => {
+  const token = uni.getStorageSync('token')
+  if (!token) {
+    isLoggedIn.value = false
+    return
+  }
+  isLoggedIn.value = true
+  loadUserInfo()
+  loadStats()
+})
+
+const goLogin = () => {
+  uni.navigateTo({ url: '/pages/login/index' })
+}
+
 const editProfile = () => {
-  // TODO: 跳转到编辑资料页
   uni.showToast({ title: '编辑资料', icon: 'none' })
 }
 
@@ -147,24 +192,30 @@ const navigateTo = (url: string) => {
 }
 
 const viewRatings = () => {
-  // TODO: 跳转到评价页面
   uni.showToast({ title: '我的评价', icon: 'none' })
 }
 
 const handleAuth = () => {
-  // TODO: 跳转到实名认证页面
   uni.showToast({ title: '实名认证', icon: 'none' })
 }
 
 const handleSettings = () => {
-  // TODO: 跳转到设置页面
   uni.showToast({ title: '设置', icon: 'none' })
 }
 
-onMounted(() => {
-  loadUserInfo()
-  loadStats()
-})
+const handleLogout = () => {
+  uni.showModal({
+    title: '提示',
+    content: '确定要退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        uni.removeStorageSync('token')
+        uni.removeStorageSync('userInfo')
+        isLoggedIn.value = false
+      }
+    }
+  })
+}
 </script>
 
 <style scoped lang="scss">
@@ -174,11 +225,40 @@ onMounted(() => {
   padding-bottom: 40rpx;
 }
 
+.login-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  gap: 32rpx;
+
+  .tip-icon-text {
+    font-size: 120rpx;
+    line-height: 1;
+    opacity: 0.4;
+  }
+
+  .tip-text {
+    font-size: 30rpx;
+    color: #999;
+  }
+
+  .login-btn {
+    width: 280rpx;
+    background-color: #1890FF;
+    color: #fff;
+    border-radius: 40rpx;
+    font-size: 28rpx;
+    border: none;
+  }
+}
+
 .user-card {
   display: flex;
   align-items: center;
   padding: 40rpx 24rpx;
-  background: linear-gradient(135deg, #07c160 0%, #05a850 100%);
+  background: linear-gradient(135deg, #1890FF 0%, #096DD9 100%);
   color: #fff;
 
   .avatar {
@@ -187,6 +267,22 @@ onMounted(() => {
     border-radius: 50%;
     margin-right: 24rpx;
     border: 4rpx solid rgba(255, 255, 255, 0.3);
+  }
+
+  .avatar-placeholder {
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: 50%;
+    margin-right: 24rpx;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .avatar-emoji {
+      font-size: 64rpx;
+      line-height: 1;
+    }
   }
 
   .user-info {
@@ -249,7 +345,7 @@ onMounted(() => {
     .stat-value {
       font-size: 40rpx;
       font-weight: bold;
-      color: #07c160;
+      color: #1890FF;
       margin-bottom: 12rpx;
     }
 
@@ -302,7 +398,7 @@ onMounted(() => {
         margin-right: 12rpx;
 
         &.verified {
-          color: #07c160;
+          color: #1890FF;
         }
       }
     }

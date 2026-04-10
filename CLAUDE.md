@@ -1,149 +1,221 @@
-# CLAUDE.md
+# CLAUDE.md - 全局开发规范
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 一、基本原则
 
-## Project Overview
+### 语言和沟通
+- **必须使用中文回复**,除非用户明确要求使用其他语言
+- 简洁明了,避免不必要的废话和总结
+- 代码要易懂但逻辑不简单,不故意炫技
+- 适当添加注释,关键逻辑必须注释
 
-This is a WeChat mini-program carpool application built with uni-app, Vue 3, and TypeScript. The project uses the OpenSpec workflow for structured development.
+### Token 优化策略
+- 简单任务(改样式/修bug) → 直接执行,简短说明
+- 中等任务(加功能) → 简要分析,询问是否执行
+- 复杂任务(架构/重构) → 详细分析,必须获得确认
 
-## Development Commands
+## 二、工作流程
 
-### WeChat Mini-Program Development
-```bash
-cd wechat-carpool-miniprogram
-npm install                    # Install dependencies
-npm run dev:mp-weixin         # Start WeChat mini-program dev mode
-npm run build:mp-weixin       # Build for production
-npm run type-check            # Run TypeScript type checking
-```
+### 标准执行流程
+1. **分析需求** - 理解用户意图
+2. **获取上下文** - 读取相关文件和配置
+3. **选择工具** - 使用合适的工具和方法
+4. **执行任务** - 实施解决方案
+5. **验证质量** - 检查代码质量和功能
+6. **存储知识** - 记录重要决策和经验
 
-### Other Platforms
-```bash
-npm run dev:h5                # H5 development
-npm run build:h5              # H5 production build
-```
+### 研究-计划-实施模式
+- **研究阶段**: 读取文件理解问题,禁止编码
+- **计划阶段**: 创建详细计划,列出 TODO
+- **实施阶段**: 实施解决方案
+- **验证阶段**: 运行测试验证
+- **文档阶段**: 更新文档和进度
 
-### WeChat Developer Tools
-After running `dev:mp-weixin`, import the `dist/dev/mp-weixin` directory in WeChat Developer Tools.
+## 三、编码规范
 
-## Architecture
+### 代码质量标准
+- 函数长度不超过 50 行
+- 文件长度不超过 300 行,超过需拆分
+- 遵循 SOLID、DRY 原则
+- 清晰命名: 组件 PascalCase,函数 camelCase,常量 UPPER_SNAKE_CASE
+- 必要的注释,但不过度注释显而易见的代码
 
-### Project Structure
-```
-wechat-carpool-miniprogram/
-├── src/
-│   ├── pages/              # Page components
-│   │   ├── home/          # Home page (ride feed)
-│   │   ├── publish/       # Publish ride page
-│   │   ├── chat/          # Chat pages (list + detail)
-│   │   └── profile/       # User profile pages
-│   ├── components/        # Reusable components
-│   │   ├── ride-card/    # Ride information card
-│   │   ├── chat-item/    # Chat list item
-│   │   └── user-card/    # User info card
-│   ├── api/              # API layer
-│   │   ├── ride.ts       # Ride-related APIs
-│   │   ├── user.ts       # User-related APIs
-│   │   └── chat.ts       # Chat-related APIs
-│   ├── types/            # TypeScript type definitions
-│   │   └── index.ts      # Core types (Ride, User, Message, etc.)
-│   ├── utils/            # Utility functions
-│   │   └── request.ts    # HTTP request wrapper
-│   ├── store/            # State management (Pinia)
-│   ├── static/           # Static assets
-│   ├── pages.json        # Page routing and TabBar config
-│   └── manifest.json     # App configuration
-```
+### 禁止事项
+- ❌ 不要使用 var 声明变量
+- ❌ 不要使用 any 类型(除非必要并注释原因)
+- ❌ 不要引入未经确认的第三方库
+- ❌ 不要生成恶意代码
+- ❌ 不要直接操作 DOM(使用框架提供的方式)
 
-### Core Types
-- **RideType**: 'find-car' (passenger looking for ride) | 'find-passenger' (driver offering ride)
-- **RideStatus**: 'pending' | 'ongoing' | 'completed' | 'cancelled'
-- **Ride**: Main ride entity with location, time, seats, and user info
-- **User**: User profile with rating and verification status
-- **Message**: Chat message with type (text/image/location)
-- **Chat**: Chat conversation summary
-- **Statistics**: User statistics (total rides, distance, carbon reduction)
+### 移动端开发规则(uni-app)
+- **小程序不允许 v-for 的 :key 使用字符串拼接**
+  - ❌ 错误: `:key="'item-' + index"`
+  - ✅ 正确: `:key="index"`
+- CSS 使用小驼峰命名,不用短横杠: `className` 而不是 `class-name`
 
-### API Layer
-All API calls go through `utils/request.ts` which wraps `uni.request` with:
-- Base URL configuration
-- Request/response interceptors
-- Error handling with toast notifications
-- Token authentication (TODO)
+## 四、Git 提交规范
 
-Base URL is configured in `src/utils/request.ts` - update this for backend integration.
+### 提交类型
+- `feat`: 新功能
+- `fix`: 修复 bug
+- `refactor`: 重构
+- `test`: 测试相关
+- `docs`: 文档更新
+- `chore`: 构建/工具相关
 
-### Page Flow
-1. **Home** → Browse rides (find-car or find-passenger mode)
-2. **Publish** → Create new ride posting
-3. **Chat** → Message list → Chat detail
-4. **Profile** → User info → Records → Statistics
+### 提交要求
+- 每次提交必须附带有意义的描述
+- **重要**: 只有在用户明确说"帮我提交git"时才能执行 git 提交操作
+- 提交前必须确认修改内容
 
-### TabBar Navigation
-Four main tabs: Home, Publish, Chat, Profile. Icons should be placed in `src/static/images/` (81x81px recommended).
+## 五、工具使用策略
 
-## OpenSpec Workflow
+### 优先使用专用工具
+- 读取文件 → 使用 `Read` 而不是 `cat`
+- 编辑文件 → 使用 `Edit` 而不是 `sed`
+- 创建文件 → 使用 `Write` 而不是 `echo >`
+- 搜索文件 → 使用 `Glob` 而不是 `find`
+- 搜索内容 → 使用 `Grep` 而不是 `grep`
 
-This project uses OpenSpec for structured development. Key commands:
-- `/opsx:propose` - Propose a new change with all artifacts
-- `/opsx:new` - Start a new change
-- `/opsx:continue` - Continue working on a change
-- `/opsx:apply` - Implement tasks from a change
-- `/opsx:verify` - Verify implementation
-- `/opsx:archive` - Archive completed change
+### 子代理选择
+根据任务类型选择合适的子代理:
+- Python 项目 → python-pro
+- JavaScript/TypeScript → javascript-pro/typescript-pro
+- 前端开发 → frontend-developer
+- 后端架构 → backend-architect
+- 代码审查 → code-reviewer
+- 性能优化 → performance-engineer
+- 错误调试 → debugger/error-detective
 
-OpenSpec artifacts are stored in `openspec/changes/`.
+## 六、上下文管理
 
-## Configuration Requirements
+### 内存优化
+- 使用三级缓存架构(L1/L2/L3)
+  - L1: 当前任务上下文
+  - L2: 最近 24 小时模块信息
+  - L3: 项目级架构与决策
+- 每次写入前检查是否已有相关内容,避免重复
+- 任务结束后执行清理与压缩
 
-### Before Development
-1. **WeChat AppID**: Update `src/manifest.json` → `mp-weixin.appid`
-2. **Backend API**: Update `src/utils/request.ts` → `BASE_URL`
-3. **TabBar Icons**: Add icons to `src/static/images/` (home, publish, chat, profile - normal and active states)
+### 缓存断点
+- `[context-init]` - 项目初始化上下文
+- `[decision-point]` - 技术选型与架构决策
+- `[module-complete]` - 模块开发完成后
+- `[session-end]` - 会话结束前归档总结
 
-### Optional Integrations
-- **Map Service**: Tencent Map or Amap (requires permission config in manifest.json)
-- **IM Service**: Tencent Cloud IM SDK or custom WebSocket
-- **State Management**: Pinia (install and configure in main.ts)
+### 上下文控制
+- 当上下文超过 150K tokens 时主动执行 `/compact`
+- compact 后必须重新读取 CLAUDE.md
+- 不相关任务之间执行 `/clear` 清空上下文
+- 约束文件读取范围,避免无目的全局搜索
+- 配合 `.claudeignore` 排除 node_modules/、dist/ 等目录
 
-## Development Notes
+## 七、测试规范
 
-### uni-app Specifics
-- Use `uni.` APIs instead of browser APIs (e.g., `uni.request`, `uni.showToast`)
-- Page routing configured in `pages.json`, not router files
-- Platform-specific code can use conditional compilation (`#ifdef MP-WEIXIN`)
+### 测试要求
+- 所有新功能必须附带单元测试
+- 接口测试覆盖率 > 80%
+- 测试必须有明确的输入输出和反馈
+- 测试命令必须可直接运行
 
-### TypeScript
-- All types defined in `src/types/index.ts`
-- Use `vue-tsc --noEmit` for type checking
-- Strict mode enabled in `tsconfig.json`
+### 测试类型
+- 单元测试: 测试独立功能模块
+- 集成测试: 测试模块间交互
+- E2E 测试: 测试完整用户流程
 
-### Vue 3 Composition API
-- Use `<script setup lang="ts">` syntax
-- Prefer Composition API over Options API
-- Use `ref` and `reactive` for state management
+## 八、安全规范
 
-### Performance
-- Enable pull-down refresh in pages.json for list pages
-- Use virtual lists for long ride lists
-- Optimize images (webp format, compression)
+### 安全要求
+- 敏感数据必须加密存储
+- 所有 API 必须经过认证
+- 验证用户输入,防止注入攻击
+- 不在代码中硬编码敏感信息(AppID、密钥等)
+- 注意 OWASP Top 10 安全问题
 
-### Security
-- Never hardcode sensitive info (AppID, keys) in code
-- Validate user input before API calls
-- Add request signing for API security
+### 代码审查
+- 检查是否存在安全漏洞
+- 验证错误处理是否完善
+- 确认权限控制是否正确
 
-## Pending Implementation
+## 九、文档和进度管理
 
-The following features are scaffolded but not fully implemented:
-- Backend API integration (mock data currently)
-- Map service integration
-- IM service integration
-- Payment functionality
-- Push notifications
-- Rating system backend
-- Ride matching algorithm
+### 任务文档
+- 描述需求后创建计划文档
+- 列出 TODO 列表
+- 根据完成情况更新进度
+- 完成的任务打勾,未完成的说明原因
+- 使用 Markdown 格式
 
-## Language
+### 知识存储
+强制存储内容:
+- 项目架构决策和理由
+- 自定义开发规范和约定
+- 已解决的复杂问题和解决方案
+- 性能优化经验
+- 用户的技术偏好和工作习惯
 
-This is a Chinese-language project. All UI text, comments, and documentation should be in Chinese (Simplified).
+## 十、执行前检查清单
+
+每次任务执行前验证:
+- [ ] 使用中文回复
+- [ ] 获取必要上下文
+- [ ] 选择合适工具
+- [ ] 检查安全性
+- [ ] 验证代码质量
+- [ ] 是否需要用户确认
+
+## 十一、架构红线(不可违反)
+
+1. 前后端必须通过 API 通信,禁止直接数据库操作
+2. 所有 API 必须经过认证中间件
+3. 敏感数据必须加密存储
+4. 组件间通信必须通过状态管理
+5. 不得绕过安全检查和验证流程
+
+## 十二、通信协议
+
+### RESTful API 规范
+- 请求体使用 camelCase
+- URL 路径使用 kebab-case
+- 响应格式统一: `{ code, message, data }`
+- HTTP 状态码正确使用
+
+### 错误处理
+- 统一错误格式
+- 提供有意义的错误信息
+- 记录错误日志
+- 优雅降级
+
+## 十三、性能优化
+
+### 性能意识
+- 关注算法复杂度
+- 优化内存使用
+- 减少不必要的 IO 操作
+- 使用缓存策略
+- 懒加载和按需加载
+
+### 前端优化
+- 图片优化(webp 格式、压缩)
+- 代码分割
+- 虚拟列表(长列表)
+- 防抖和节流
+
+## 十四、OpenSpec 工作流
+
+### 可用命令
+- `/opsx:propose` - 提出新变更并生成所有工件
+- `/opsx:new` - 开始新变更
+- `/opsx:continue` - 继续工作
+- `/opsx:apply` - 实施任务
+- `/opsx:verify` - 验证实现
+- `/opsx:archive` - 归档完成的变更
+
+### 使用场景
+- 结构化开发流程
+- 复杂功能开发
+- 团队协作项目
+
+---
+
+**最后更新**: 2026-03-13
+**版本**: 1.0.0

@@ -96,7 +96,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onPullDownRefresh, onShow } from 'vue'
+import { ref, onMounted } from 'vue'
+import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
 import type { Ride } from '@/types'
 import { createConversation } from '@/api/chat'
 import { getRideList, searchRides } from '@/api/ride'
