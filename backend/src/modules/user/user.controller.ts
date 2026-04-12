@@ -1,7 +1,7 @@
 import { Controller, Get, Patch, Post, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { UpdateUserDto, VerifyIdentityDto } from './dto/user.dto';
+import { UpdateUserDto, VerifyIdentityDto, UpdateSettingsDto } from './dto/user.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @ApiTags('用户')
@@ -60,5 +60,28 @@ export class UserController {
   @ApiResponse({ status: 200, description: '获取成功' })
   async getUserRides(@Request() req, @Query('status') status?: string) {
     return this.userService.getUserRides(req.user.id, status);
+  }
+
+  /** 收到的评价 */
+  @Get('ratings/received')
+  @ApiOperation({ summary: '收到的评价' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getReceivedRatings(@Request() req) {
+    return this.userService.getReceivedRatings(req.user.id);
+  }
+
+  /** 我发出的评价 */
+  @Get('ratings/given')
+  @ApiOperation({ summary: '我发出的评价' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getGivenRatings(@Request() req) {
+    return this.userService.getGivenRatings(req.user.id);
+  }
+
+  @Patch('settings')
+  @ApiOperation({ summary: '更新通知设置' })
+  @ApiResponse({ status: 200, description: '更新成功' })
+  async updateSettings(@Request() req, @Body() dto: UpdateSettingsDto) {
+    return this.userService.updateSettings(req.user.id, dto);
   }
 }

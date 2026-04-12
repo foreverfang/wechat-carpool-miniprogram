@@ -60,7 +60,7 @@
           <text class="menu-arrow">›</text>
         </view>
 
-        <view class="menu-item" @click="viewRatings">
+        <view class="menu-item" @click="navigateTo('/pages/profile/ratings')">
           <view class="menu-left">
             <text class="menu-icon">⭐</text>
             <text class="menu-text">我的评价</text>
@@ -70,23 +70,18 @@
       </view>
 
       <view class="menu-section">
-        <view class="menu-item" @click="handleAuth">
-          <view class="menu-left">
-            <text class="menu-icon">🔐</text>
-            <text class="menu-text">实名认证</text>
-          </view>
-          <view class="menu-right">
-            <text class="status" :class="userInfo.verified ? 'verified' : ''">
-              {{ userInfo.verified ? '已认证' : '未认证' }}
-            </text>
-            <text class="menu-arrow">›</text>
-          </view>
-        </view>
-
-        <view class="menu-item" @click="handleSettings">
+        <view class="menu-item" @click="navigateTo('/pages/profile/settings')">
           <view class="menu-left">
             <text class="menu-icon">⚙️</text>
             <text class="menu-text">设置</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
+
+        <view class="menu-item" @click="navigateTo('/pages/profile/feedback')">
+          <view class="menu-left">
+            <text class="menu-icon">💬</text>
+            <text class="menu-text">意见反馈</text>
           </view>
           <text class="menu-arrow">›</text>
         </view>
@@ -107,6 +102,20 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getUserInfo, getUserStatistics } from '@/api/user'
+
+interface UserResponse {
+  avatar?: string
+  nickname?: string
+  rating?: number
+  isVerified?: boolean
+  notifyRideMatch?: boolean
+}
+
+interface StatisticsResponse {
+  published?: number
+  findCar?: number
+  completed?: number
+}
 
 interface UserInfo {
   avatar: string
@@ -139,10 +148,10 @@ const loadUserInfo = async () => {
   try {
     const res = await getUserInfo()
     userInfo.value = {
-      avatar: (res as any).avatar || '',
-      username: (res as any).nickname || '用户名',
-      rating: (res as any).rating || 5.0,
-      verified: (res as any).isVerified || false,
+      avatar: (res as UserResponse).avatar || '',
+      username: (res as UserResponse).nickname || '用户名',
+      rating: (res as UserResponse).rating || 5.0,
+      verified: (res as UserResponse).isVerified || false,
     }
   } catch (error) {
     console.error('加载用户信息失败', error)
@@ -153,9 +162,9 @@ const loadStats = async () => {
   try {
     const res = await getUserStatistics()
     stats.value = {
-      published: (res as any).published || 0,
-      joined: (res as any).findCar || 0,
-      completed: (res as any).completed || 0,
+      published: (res as StatisticsResponse).published || 0,
+      joined: (res as StatisticsResponse).findCar || 0,
+      completed: (res as StatisticsResponse).completed || 0,
     }
   } catch (error) {
     console.error('加载统计失败', error)
@@ -189,18 +198,6 @@ const viewRecords = (type: string) => {
 
 const navigateTo = (url: string) => {
   uni.navigateTo({ url })
-}
-
-const viewRatings = () => {
-  uni.showToast({ title: '我的评价', icon: 'none' })
-}
-
-const handleAuth = () => {
-  uni.showToast({ title: '实名认证', icon: 'none' })
-}
-
-const handleSettings = () => {
-  uni.showToast({ title: '设置', icon: 'none' })
 }
 
 const handleLogout = () => {
@@ -385,21 +382,6 @@ const handleLogout = () => {
       .menu-text {
         font-size: 28rpx;
         color: #333;
-      }
-    }
-
-    .menu-right {
-      display: flex;
-      align-items: center;
-
-      .status {
-        font-size: 24rpx;
-        color: #999;
-        margin-right: 12rpx;
-
-        &.verified {
-          color: #1890FF;
-        }
       }
     }
 

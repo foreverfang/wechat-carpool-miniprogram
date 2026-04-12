@@ -42,6 +42,9 @@ export class User {
   })
   status: string;
 
+  @Column({ name: 'notify_ride_match', default: true })
+  notifyRideMatch: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

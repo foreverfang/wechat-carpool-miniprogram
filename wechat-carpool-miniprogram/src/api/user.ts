@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { User, Statistics } from '@/types'
+import type { User, Statistics, Rating } from '@/types'
 
 // 获取用户信息
 export const getUserInfo = () => {
@@ -52,6 +52,31 @@ export const verifyIdentity = (data: {
   return request<void>({
     url: '/users/verify',
     method: 'POST',
+    data
+  })
+}
+
+// 获取收到的评价
+export const getReceivedRatings = () => {
+  return request<Rating[]>({
+    url: '/users/ratings/received',
+    method: 'GET'
+  })
+}
+
+// 获取发出的评价
+export const getGivenRatings = () => {
+  return request<Rating[]>({
+    url: '/users/ratings/given',
+    method: 'GET'
+  })
+}
+
+// 更新通知设置
+export const updateSettings = (data: { notifyRideMatch?: boolean }) => {
+  return request<{ notifyRideMatch: boolean }>({
+    url: '/users/settings',
+    method: 'PATCH',
     data
   })
 }

@@ -46,7 +46,7 @@
           <view class="item-right">
             <text class="value">{{ distribution.findCar }}</text>
             <text class="percent">
-              {{ ((distribution.findCar / distribution.total) * 100).toFixed(0) }}%
+              {{ distribution.total > 0 ? ((distribution.findCar / distribution.total) * 100).toFixed(0) : 0 }}%
             </text>
           </view>
         </view>
@@ -59,7 +59,7 @@
           <view class="item-right">
             <text class="value">{{ distribution.findPassenger }}</text>
             <text class="percent">
-              {{ ((distribution.findPassenger / distribution.total) * 100).toFixed(0) }}%
+              {{ distribution.total > 0 ? ((distribution.findPassenger / distribution.total) * 100).toFixed(0) : 0 }}%
             </text>
           </view>
         </view>
@@ -84,6 +84,9 @@
           </view>
         </view>
       </view>
+      <view v-if="topRoutes.length === 0" class="empty-hint">
+        <text class="empty-text">暂无路线数据</text>
+      </view>
     </view>
 
     <!-- 成就徽章 -->
@@ -105,18 +108,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { getUserStatistics } from '@/api/user'
 
-interface Overview {
+interface StatItem {
   totalRides: number
   totalDistance: number
   totalPeople: number
   carbonReduction: number
-}
-
-interface Distribution {
   findCar: number
   findPassenger: number
-  total: number
 }
 
 interface Route {
@@ -132,42 +132,43 @@ interface Badge {
   unlocked: boolean
 }
 
-const overview = ref<Overview>({
-  totalRides: 28,
-  totalDistance: 420,
-  totalPeople: 56,
-  carbonReduction: 84
+const overview = ref<StatItem>({
+  totalRides: 0,
+  totalDistance: 0,
+  totalPeople: 0,
+  carbonReduction: 0,
+  findCar: 0,
+  findPassenger: 0,
 })
 
-const distribution = ref<Distribution>({
-  findCar: 12,
-  findPassenger: 16,
-  total: 28
-})
-
-const topRoutes = ref<Route[]>([
-  { departure: '北京朝阳区', destination: '北京海淀区', count: 8 },
-  { departure: '北京西城区', destination: '北京东城区', count: 6 },
-  { departure: '北京丰台区', destination: '北京朝阳区', count: 5 },
-  { departure: '北京海淀区', destination: '北京西城区', count: 4 },
-  { departure: '北京东城区', destination: '北京丰台区', count: 3 }
-])
-
-const badges = ref<Badge[]>([
-  { id: '1', icon: '🌟', name: '新手上路', unlocked: true },
-  { id: '2', icon: '🚗', name: '老司机', unlocked: true },
-  { id: '3', icon: '🌱', name: '环保达人', unlocked: true },
-  { id: '4', icon: '👥', name: '社交达人', unlocked: false },
-  { id: '5', icon: '🏆', name: '拼车之王', unlocked: false },
-  { id: '6', icon: '💯', name: '完美评分', unlocked: false }
-])
+const distribution = ref({ findCar: 0, findPassenger: 0, total: 0 })
+const topRoutes = ref<Route[]>([])
+const badges = ref<Badge[]>([])
+const loading = ref(true)
 
 const loadStatistics = async () => {
   try {
-    // TODO: 调用实际 API
-    // const res = await getStatistics()
+    const res = await getUserStatistics()
+    const data = res as any // API 返回类型暂未定义
+    overview.value = {
+      totalRides: data.totalRides || 0,
+      totalDistance: data.totalDistance || 0,
+      totalPeople: data.totalPeople || 0,
+      carbonReduction: data.carbonReduction || 0,
+      findCar: data.findCar || 0,
+      findPassenger: data.findPassenger || 0,
+    }
+    distribution.value = {
+      findCar: data.findCar || 0,
+      findPassenger: data.findPassenger || 0,
+      total: (data.findCar || 0) + (data.findPassenger || 0),
+    }
+    topRoutes.value = data.topRoutes || []
+    badges.value = data.badges || []
   } catch (error) {
-    console.error('加载失败', error)
+    uni.showToast({ title: '加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
 }
 
@@ -357,6 +358,15 @@ onMounted(() => {
           font-size: 24rpx;
           color: #999;
         }
+      }
+    }
+
+    .empty-hint {
+      padding: 40rpx 0;
+      text-align: center;
+      .empty-text {
+        font-size: 26rpx;
+        color: #999;
       }
     }
   }

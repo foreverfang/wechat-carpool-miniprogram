@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { RideModule } from './modules/ride/ride.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -33,6 +34,7 @@ import databaseConfig from './config/database.config';
     UserModule,
     RideModule,
     ChatModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsString, Length, IsNotEmpty, IsBoolean } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -24,4 +24,10 @@ export class VerifyIdentityDto {
   @IsNotEmpty()
   @IsString()
   idCard: string;
+}
+
+export class UpdateSettingsDto {
+  @IsOptional()
+  @IsBoolean()
+  notifyRideMatch?: boolean;
 }
