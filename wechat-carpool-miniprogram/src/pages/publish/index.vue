@@ -1,5 +1,18 @@
 <template>
   <view class="publish-page">
+    <!-- 快捷操作 -->
+    <QuickActions
+      :hasHistory="rideHistory.length > 0"
+      @loadLastRide="loadLastRide"
+    />
+
+    <!-- 历史行程 -->
+    <HistoryRides
+      :rides="rideHistory"
+      @selectRide="applyHistoryRide"
+      @viewMore="goToHistory"
+    />
+
     <!-- 页面标题 -->
     <view class="page-header">
       <text class="page-title">发布拼车信息</text>
@@ -180,9 +193,58 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import type { RideType, PublishRideParams } from '@/types'
-import { publishRide } from '@/api/ride'
+import { publishRide, getRideHistory, type RideHistory } from '@/api/ride'
+import QuickActions from './components/QuickActions.vue'
+import HistoryRides from './components/HistoryRides.vue'
+
+const rideHistory = ref<RideHistory[]>([])
+
+onMounted(async () => {
+  try {
+    rideHistory.value = await getRideHistory(5)
+  } catch {
+    // 历史行程加载失败不影响主流程
+  }
+})
+
+const loadLastRide = () => {
+  if (rideHistory.value.length > 0) {
+    applyHistoryRide(rideHistory.value[0])
+  }
+}
+
+const applyHistoryRide = (ride: RideHistory) => {
+  formData.type = ride.type as RideType
+  formData.departure = ride.departure
+  formData.destination = ride.destination
+  if (ride.departureLocation) {
+    formData.departureLocation = {
+      name: ride.departure,
+      latitude: ride.departureLocation.latitude,
+      longitude: ride.departureLocation.longitude,
+    }
+  }
+  if (ride.destinationLocation) {
+    formData.destinationLocation = {
+      name: ride.destination,
+      latitude: ride.destinationLocation.latitude,
+      longitude: ride.destinationLocation.longitude,
+    }
+  }
+  if (ride.waypoints) {
+    formData.waypoints = ride.waypoints.map(wp => ({ name: '', latitude: wp.latitude, longitude: wp.longitude }))
+  }
+  if (ride.seats) formData.seats = ride.seats
+  if (ride.price) formData.price = ride.price
+  if (ride.note) formData.note = ride.note
+  uni.showToast({ title: '已填入历史行程', icon: 'success' })
+}
+
+const goToHistory = () => {
+  uni.navigateTo({ url: '/pages/profile/records' })
+}
 
 // 表单数据
 const formData = reactive<PublishRideParams>({

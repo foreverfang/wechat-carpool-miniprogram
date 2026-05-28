@@ -248,4 +248,29 @@ export class RideService {
 
     return { message: '删除成功' };
   }
+
+  /**
+   * 获取用户历史行程
+   */
+  async getMyHistory(userId: number, limit: number = 10) {
+    const rides = await this.rideRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+
+    return rides.map(ride => ({
+      id: ride.id,
+      type: ride.type,
+      departure: ride.departure,
+      departureLocation: ride.departureLocation,
+      destination: ride.destination,
+      destinationLocation: ride.destinationLocation,
+      waypoints: ride.waypoints,
+      departureTime: ride.departureTime,
+      seats: ride.seats,
+      price: ride.price,
+      note: ride.note,
+    }));
+  }
 }

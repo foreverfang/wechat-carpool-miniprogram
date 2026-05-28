@@ -10,6 +10,7 @@ import { UserModule } from './modules/user/user.module';
 import { RideModule } from './modules/ride/ride.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
+import { FavoriteLocationModule } from './modules/favorite-location/favorite-location.module';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -35,6 +36,7 @@ import databaseConfig from './config/database.config';
     RideModule,
     ChatModule,
     FeedbackModule,
+    FavoriteLocationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

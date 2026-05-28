@@ -43,6 +43,21 @@ export class RideController {
   }
 
   /**
+   * 获取用户历史行程(必须在 :id 路由之前注册)
+   */
+  @Get('history')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取用户历史行程' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getMyHistory(
+    @Request() req,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.rideService.getMyHistory(req.user.id, Number(limit));
+  }
+
+  /**
    * 获取拼车详情
    */
   @Get(':id')

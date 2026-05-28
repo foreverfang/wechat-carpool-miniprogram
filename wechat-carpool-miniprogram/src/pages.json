@@ -76,6 +76,12 @@
 			}
 		},
 		{
+			"path": "pages/profile/favorite-locations",
+			"style": {
+				"navigationBarTitleText": "常用地点"
+			}
+		},
+		{
 			"path": "TUIKit/components/TUIChat/index",
 			"style": {
 				"navigationBarTitleText": "聊天",

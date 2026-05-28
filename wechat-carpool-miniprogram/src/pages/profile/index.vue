@@ -70,6 +70,14 @@
       </view>
 
       <view class="menu-section">
+        <view class="menu-item" @click="navigateTo('/pages/profile/favorite-locations')">
+          <view class="menu-left">
+            <text class="menu-icon">📍</text>
+            <text class="menu-text">常用地点</text>
+          </view>
+          <text class="menu-arrow">›</text>
+        </view>
+
         <view class="menu-item" @click="navigateTo('/pages/profile/settings')">
           <view class="menu-left">
             <text class="menu-icon">⚙️</text>

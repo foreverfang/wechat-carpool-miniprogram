@@ -1,6 +1,20 @@
 import request from '@/utils/request'
 import type { Ride, RideType, PublishRideParams } from '@/types'
 
+export interface RideHistory {
+  id: number
+  type: 'find-car' | 'find-passenger'
+  departure: string
+  departureLocation?: { latitude: number; longitude: number }
+  destination: string
+  destinationLocation?: { latitude: number; longitude: number }
+  waypoints?: Array<{ latitude: number; longitude: number }>
+  departureTime: string
+  seats?: number
+  price?: number
+  note?: string
+}
+
 // 获取拼车列表
 export const getRideList = (params: {
   type: RideType
@@ -48,5 +62,14 @@ export const searchRides = (params: {
     url: '/rides/search',
     method: 'GET',
     data: params
+  })
+}
+
+// 获取历史行程
+export const getRideHistory = (limit: number = 10) => {
+  return request<RideHistory[]>({
+    url: '/rides/history',
+    method: 'GET',
+    data: { limit },
   })
 }
